@@ -2,6 +2,7 @@
 #define UTIL_UTIL_H
 
 #include <functional>
+#include <iterator>
 #include <numeric>
 
 #pragma clang diagnostic push
@@ -70,6 +71,31 @@ inline bool almostEqual(float A, float B, int maxUlps) {
 template <typename T>
 int sgn(T val) {
   return (T(0) < val) - (val < T(0));
+}
+
+// The gather operation computes result[i] = vector[index[i]] over all i.
+template <typename TIterator, typename IndexIterator, typename ResultIterator>
+inline void gather(IndexIterator index_begin, IndexIterator index_end,
+                   TIterator begin, ResultIterator result_begin) {
+  std::transform(
+      index_begin, index_end, result_begin,
+      [begin](typename IndexIterator::value_type index) {
+        return *(begin +
+                 static_cast<typename IndexIterator::difference_type>(index));
+      });
+}
+
+// The scatter operation computes result[index[i]] = vector[i] over all i.
+template <typename TIterator, typename IndexIterator, typename ResultIterator>
+inline void scatter(IndexIterator index_begin, IndexIterator index_end,
+                    TIterator begin, ResultIterator result_begin) {
+  typename IndexIterator::difference_type count = 0;
+  std::for_each(
+      index_begin, index_end,
+      [result_begin, begin, &count](typename IndexIterator::value_type index) {
+        *(result_begin + static_cast<typename IndexIterator::difference_type>(
+                             index)) = *(begin + count++);
+      });
 }
 
 }  // namespace Util

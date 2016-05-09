@@ -157,6 +157,13 @@ TEST(Archive, Vector) {
   ar_in % vec_in;
 
   EXPECT_EQ(vec_in, vec_out);
+
+  sin = istringstream(sout.str());
+  std::vector<int> vec_in2({1, 2, 1});
+
+  ar_in % vec_in2;
+
+  EXPECT_EQ(vec_in2, vec_out);
 }
 
 TEST(Archive, UnorderedSet) {
