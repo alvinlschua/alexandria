@@ -17,14 +17,13 @@ class AD<T>::Unary : public Expression {
  public:
   using VarValues = typename AD<T>::VarValues;
 
-  explicit Unary(const AD<T>& ad) : ad_(ad) {}
+  explicit Unary(const AD<T>& term) : term_(term) {}
   Unary(const Unary&) = default;
   Unary& operator=(const Unary&) = default;
 
   virtual ~Unary() {}
 
- protected:
-  AD<T> ad_;
+  const AD& term() const { return term_; }
 
  private:
   // Value evaluation of the function itself.
@@ -41,36 +40,41 @@ class AD<T>::Unary : public Expression {
 
   // Simplify the expression.
   AD<T> simplifyImpl() const override;
+
+  AD<T> term_;
 };
 
 template <typename T>
 AD<T> AD<T>::Unary::differentiateImpl(const AD<T>& var) const {
   // TODO(alvin) Only reverse mode at the moment. Consider implementing forward
   // mode.
-  auto result = dF() * ad_.differentiate(var);
+  auto result = dF() * term().differentiate(var);
   return result.simplify();
 }
 
 template <typename T>
 AD<T> AD<T>::Unary::evaluateAtImpl(const VarValues& varValues) const {
   using Const = typename AD<T>::Const;
-  auto ad = !ad_.template isType<Const>() ? ad_.evaluateAt(varValues) : ad_;
-  ad = ad.simplify();
+  auto term = !this->term().template isType<Const>()
+                  ? this->term().evaluateAt(varValues)
+                  : this->term();
+  term = term.simplify();
 
-  if (ad.template isType<Const>()) {
-    return AD<T>(f(ad.template reference<Const>().value()));
+  if (term.template isType<Const>()) {
+    return AD<T>(f(term.template reference<Const>().value()));
   }
 
   auto ptr = this->clone();
-  dynamic_cast<Unary*>(ptr.get())->ad_ = ad;
+  dynamic_cast<Unary*>(ptr.get())->term_ = term;
 
   return AD<T>(std::move(ptr));
 }
 
 template <typename T>
 AD<T> AD<T>::Unary::simplifyImpl() const {
-  return ad_.template isType<typename AD<T>::Const>() ? AD<T>(f(value(ad_)))
-                                                      : AD<T>(this->clone());
+  return term().template isType<typename AD<T>::Const>()
+             ? AD<T>(f(value(term())))
+             : AD<T>(this->clone());
 }
 
 template <typename T>
@@ -95,10 +99,10 @@ class UnaryMinus : public AD<T>::Unary {
   }
 
   std::string expressionImpl() const {
-    return this->ad_.template isType<typename AD<T>::Const>() ||
-                   this->ad_.template isType<typename AD<T>::Var>()
-               ? "-" + this->ad_.expression()
-               : "-(" + this->ad_.expression() + ")";
+    return this->term().template isType<typename AD<T>::Const>() ||
+                   this->term().template isType<typename AD<T>::Var>()
+               ? "-" + this->term().expression()
+               : "-(" + this->term().expression() + ")";
   }
 
   AD<T> simplifyImpl() const final;
@@ -117,14 +121,14 @@ class Sin : public AD<T>::Unary {
   explicit Sin(const AD<T>& ad) : AD<T>::Unary(ad) {}
 
   T f(const T& value) const final { return sin(value); }
-  AD<T> dF() const final { return cos(this->ad_); }
+  AD<T> dF() const final { return cos(this->term()); }
 
   std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
     return std::make_unique<Sin>(*this);
   }
 
   std::string expressionImpl() const {
-    return "sin(" + this->ad_.expression() + ")";
+    return "sin(" + this->term().expression() + ")";
   }
 };
 
@@ -141,14 +145,14 @@ class Cos : public AD<T>::Unary {
   explicit Cos(const AD<T>& ad) : AD<T>::Unary(ad) {}
 
   T f(const T& value) const final { return cos(value); }
-  AD<T> dF() const final { return -sin(this->ad_); }
+  AD<T> dF() const final { return -sin(this->term()); }
 
   std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
     return std::make_unique<Cos>(*this);
   }
 
   std::string expressionImpl() const {
-    return "cos(" + this->ad_.expression() + ")";
+    return "cos(" + this->term().expression() + ")";
   }
 };
 
@@ -165,14 +169,14 @@ class Exp : public AD<T>::Unary {
   explicit Exp(const AD<T>& ad) : AD<T>::Unary(ad) {}
 
   T f(const T& value) const final { return exp(value); }
-  AD<T> dF() const final { return exp(this->ad_); }
+  AD<T> dF() const final { return exp(this->term()); }
 
   std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
     return std::make_unique<Exp>(*this);
   }
 
   std::string expressionImpl() const {
-    return "exp(" + this->ad_.expression() + ")";
+    return "exp(" + this->term().expression() + ")";
   }
 };
 
@@ -189,14 +193,14 @@ class Log : public AD<T>::Unary {
   explicit Log(const AD<T>& ad) : AD<T>::Unary(ad) {}
 
   T f(const T& value) const final { return std::log(value); }
-  AD<T> dF() const final { return 1.0 / this->ad_; }
+  AD<T> dF() const final { return 1.0 / this->term(); }
 
   std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
     return std::make_unique<Log>(*this);
   }
 
   std::string expressionImpl() const {
-    return "exp(" + this->ad_.expression() + ")";
+    return "exp(" + this->term().expression() + ")";
   }
 };
 
@@ -204,10 +208,10 @@ class Log : public AD<T>::Unary {
 template <typename T>
 AD<T> UnaryMinus<T>::simplifyImpl() const {
   AD<T> result;
-  if (this->ad_.template isType<typename AD<T>::Const>()) {
-    result = AD<T>(f(value(this->ad_)));
-  } else if (this->ad_.template isType<UnaryMinus>()) {
-    result = this->ad_.template reference<UnaryMinus>().ad_;
+  if (this->term().template isType<typename AD<T>::Const>()) {
+    result = AD<T>(f(value(this->term())));
+  } else if (this->term().template isType<UnaryMinus>()) {
+    result = this->term().template reference<UnaryMinus>().term();
   } else {
     result = AD<T>(this->clone());
   }

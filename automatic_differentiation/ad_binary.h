@@ -19,14 +19,15 @@ class AD<T>::Binary : public Expression {
  public:
   using VarValues = AD<T>::VarValues;
 
-  Binary(const AD<T>& ad1, const AD<T>& ad2) : ad1_(ad1), ad2_(ad2) {}
+  Binary(const AD<T>& term1, const AD<T>& term2)
+      : term1_(term1), term2_(term2) {}
   Binary(const Binary&) = default;
   Binary& operator=(const Binary&) = default;
 
   virtual ~Binary() {}
 
-  const AD<T>& adFirst() const { return ad1_; }
-  const AD<T>& adSecond() const { return ad2_; }
+  const AD<T>& term1() const { return term1_; }
+  const AD<T>& term2() const { return term2_; }
 
  private:
   // TODO(alvin) Considering adding fMove
@@ -46,39 +47,39 @@ class AD<T>::Binary : public Expression {
   // Evaluate the expression.
   AD<T> evaluateAtImpl(const VarValues& varValues) const final;
 
-  AD<T> ad1_;
-  AD<T> ad2_;
+  AD<T> term1_;
+  AD<T> term2_;
 };
 
 template <typename T>
 AD<T> AD<T>::Binary::differentiateImpl(const AD<T>& var) const {
   // TODO(alvin) Only reverse mode at the moment. Consider implementing forward
   // mode.
-  auto result = dF1() * adFirst().differentiate(var) +
-                dF2() * adSecond().differentiate(var);
+  auto result =
+      dF1() * term1().differentiate(var) + dF2() * term2().differentiate(var);
 
   return result.simplify();
 }
 
 template <typename T>
 AD<T> AD<T>::Binary::evaluateAtImpl(const VarValues& varValues) const {
-  auto ad1 = (!adFirst().template isType<Const>())
-                 ? adFirst().evaluateAt(varValues)
-                 : adFirst();
-  auto ad2 = (!adSecond().template isType<Const>())
-                 ? adSecond().evaluateAt(varValues)
-                 : adSecond();
+  auto term1 = (!this->term1().template isType<Const>())
+                   ? this->term1().evaluateAt(varValues)
+                   : this->term1();
+  auto term2 = (!this->term2().template isType<Const>())
+                   ? this->term2().evaluateAt(varValues)
+                   : this->term2();
 
-  ad1 = ad1.simplify();
-  ad2 = ad2.simplify();
+  term1 = term1.simplify();
+  term2 = term2.simplify();
 
-  if (ad1.template isType<Const>() && ad2.template isType<Const>()) {
-    return AD<T>(f(value(ad1), value(ad2)));
+  if (term1.template isType<Const>() && term2.template isType<Const>()) {
+    return AD<T>(f(value(term1), value(term2)));
   }
 
   auto ptr = this->clone();
-  dynamic_cast<Binary*>(ptr.get())->ad1_ = ad1;
-  dynamic_cast<Binary*>(ptr.get())->ad2_ = ad2;
+  dynamic_cast<Binary*>(ptr.get())->term1_ = term1;
+  dynamic_cast<Binary*>(ptr.get())->term2_ = term2;
 
   return AD<T>(std::move(ptr)).simplify();
 }
@@ -90,12 +91,12 @@ class Plus : public AD<T>::Binary {
   Plus& operator=(const Plus&) = default;
   virtual ~Plus() {}
 
-  static AD<T> makeAD(const AD<T>& ad1, const AD<T>& ad2) {
-    return AD<T>(Plus(ad1, ad2).clone());
+  static AD<T> makeAD(const AD<T>& term1, const AD<T>& term2) {
+    return AD<T>(Plus(term1, term2).clone());
   }
 
  private:
-  Plus(const AD<T>& ad1, const AD<T>& ad2) : AD<T>::Binary(ad1, ad2) {}
+  Plus(const AD<T>& term1, const AD<T>& term2) : AD<T>::Binary(term1, term2) {}
 
   T f(const T& value1, const T& value2) const final { return value1 + value2; }
   AD<T> dF1() const final { return AD<T>(1.0); }
@@ -106,8 +107,8 @@ class Plus : public AD<T>::Binary {
   }
 
   std::string expressionImpl() const {
-    return "(" + this->adFirst().expression() + " + " +
-           this->adSecond().expression() + ")";
+    return "(" + this->term1().expression() + " + " +
+           this->term2().expression() + ")";
   }
 
   AD<T> simplifyImpl() const final;
@@ -120,12 +121,12 @@ class Minus : public AD<T>::Binary {
   Minus& operator=(const Minus&) = default;
   virtual ~Minus() {}
 
-  static AD<T> makeAD(const AD<T>& ad1, const AD<T>& ad2) {
-    return AD<T>(Minus(ad1, ad2).clone());
+  static AD<T> makeAD(const AD<T>& term1, const AD<T>& term2) {
+    return AD<T>(Minus(term1, term2).clone());
   }
 
  private:
-  Minus(const AD<T>& ad1, const AD<T>& ad2) : AD<T>::Binary(ad1, ad2) {}
+  Minus(const AD<T>& term1, const AD<T>& term2) : AD<T>::Binary(term1, term2) {}
 
   T f(const T& value1, const T& value2) const final { return value1 - value2; }
   AD<T> dF1() const final { return AD<T>(1.0); }
@@ -136,8 +137,8 @@ class Minus : public AD<T>::Binary {
   }
 
   std::string expressionImpl() const {
-    return "(" + this->adFirst().expression() + " - " +
-           this->adSecond().expression() + ")";
+    return "(" + this->term1().expression() + " - " +
+           this->term2().expression() + ")";
   }
 
   AD<T> simplifyImpl() const;
@@ -150,23 +151,23 @@ class Times : public AD<T>::Binary {
   Times& operator=(const Times&) = default;
   virtual ~Times() {}
 
-  static AD<T> makeAD(const AD<T>& ad1, const AD<T>& ad2) {
-    return AD<T>(Times(ad1, ad2).clone());
+  static AD<T> makeAD(const AD<T>& term1, const AD<T>& term2) {
+    return AD<T>(Times(term1, term2).clone());
   }
 
  private:
-  Times(const AD<T>& ad1, const AD<T>& ad2) : AD<T>::Binary(ad1, ad2) {}
+  Times(const AD<T>& term1, const AD<T>& term2) : AD<T>::Binary(term1, term2) {}
 
   T f(const T& value1, const T& value2) const final { return value1 * value2; }
-  AD<T> dF1() const final { return this->adSecond(); }
-  AD<T> dF2() const final { return this->adFirst(); }
+  AD<T> dF1() const final { return this->term2(); }
+  AD<T> dF2() const final { return this->term1(); }
 
   std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
     return std::make_unique<Times>(*this);
   }
 
   std::string expressionImpl() const {
-    return this->adFirst().expression() + " * " + this->adSecond().expression();
+    return this->term1().expression() + " * " + this->term2().expression();
   }
 
   AD<T> simplifyImpl() const final;
@@ -179,17 +180,18 @@ class Divide : public AD<T>::Binary {
   Divide& operator=(const Divide&) = default;
   virtual ~Divide() {}
 
-  static AD<T> makeAD(const AD<T>& ad1, const AD<T>& ad2) {
-    return AD<T>(Divide(ad1, ad2).clone());
+  static AD<T> makeAD(const AD<T>& term1, const AD<T>& term2) {
+    return AD<T>(Divide(term1, term2).clone());
   }
 
  private:
-  Divide(const AD<T>& ad1, const AD<T>& ad2) : AD<T>::Binary(ad1, ad2) {}
+  Divide(const AD<T>& term1, const AD<T>& term2)
+      : AD<T>::Binary(term1, term2) {}
 
   T f(const T& value1, const T& value2) const { return value1 / value2; }
-  AD<T> dF1() const final { return 1.0 / this->adSecond(); }
+  AD<T> dF1() const final { return 1.0 / this->term2(); }
   AD<T> dF2() const final {
-    return -this->adFirst() / (this->adSecond() * this->adSecond());
+    return -this->term1() / (this->term2() * this->term2());
   }
 
   std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
@@ -197,7 +199,7 @@ class Divide : public AD<T>::Binary {
   }
 
   std::string expressionImpl() const {
-    return this->adFirst().expression() + " / " + this->adSecond().expression();
+    return this->term1().expression() + " / " + this->term2().expression();
   }
 
   AD<T> simplifyImpl() const final;
@@ -210,22 +212,22 @@ class Pow : public AD<T>::Binary {
   Pow& operator=(const Pow&) = default;
   virtual ~Pow() {}
 
-  static AD<T> makeAD(const AD<T>& ad1, const AD<T>& ad2) {
-    return AD<T>(Pow(ad1, ad2).clone());
+  static AD<T> makeAD(const AD<T>& term1, const AD<T>& term2) {
+    return AD<T>(Pow(term1, term2).clone());
   }
 
  private:
-  Pow(const AD<T>& ad1, const AD<T>& ad2) : AD<T>::Binary(ad1, ad2) {}
+  Pow(const AD<T>& term1, const AD<T>& term2) : AD<T>::Binary(term1, term2) {}
 
   T f(const T& value1, const T& value2) const {
     return std::pow(value1, value2);
   }
   AD<T> dF1() const final {
-    return this->adSecond() * pow(this->adFirst(), this->adSecond() - 1.0);
+    return this->term2() * pow(this->term1(), this->term2() - 1.0);
   }
 
   AD<T> dF2() const final {
-    return pow(this->adFirst(), this->adSecond()) * log(this->adFirst());
+    return pow(this->term1(), this->term2()) * log(this->term1());
   }
 
   std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
@@ -233,8 +235,8 @@ class Pow : public AD<T>::Binary {
   }
 
   std::string expressionImpl() const {
-    return "pow(" + this->adFirst().expression() + " , " +
-           this->adSecond().expression() + ")";
+    return "pow(" + this->term1().expression() + " , " +
+           this->term2().expression() + ")";
   }
 
   AD<T> simplifyImpl() const final;
@@ -245,52 +247,52 @@ template <typename T>
 AD<T> Plus<T>::simplifyImpl() const {
   using Const = typename AD<T>::Const;
 
-  auto ad1 = this->adFirst().simplify();
-  auto ad2 = this->adSecond().simplify();
+  auto term1 = this->term1().simplify();
+  auto term2 = this->term2().simplify();
 
-  if (ad1.template isType<Const>() && ad2.template isType<Const>()) {
-    return AD<T>(f(value(ad1), value(ad2)));
+  if (term1.template isType<Const>() && term2.template isType<Const>()) {
+    return AD<T>(f(value(term1), value(term2)));
   }
 
   // Convert to Const + Expression if possible
-  if (ad2.template isType<Const>()) {
-    std::swap(ad1, ad2);
+  if (term2.template isType<Const>()) {
+    std::swap(term1, term2);
   }
 
   // 0 + Expression -> -Expression
-  if (ad1.template isType<Const>() && Util::almostEqual(value(ad1), 0)) {
-    return ad2;
+  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
+    return term2;
   }
 
   // (c1 * Expression) + (c2 * Expression) = (c1 + c2) * Expression
-  if (ad1.template isType<Times<T>>() && ad2.template isType<Times<T>>()) {
-    auto& ad11 = ad1.template reference<Times<T>>().adFirst();
-    auto& ad12 = ad1.template reference<Times<T>>().adSecond();
-    auto& ad21 = ad2.template reference<Times<T>>().adFirst();
-    auto& ad22 = ad2.template reference<Times<T>>().adSecond();
+  if (term1.template isType<Times<T>>() && term2.template isType<Times<T>>()) {
+    auto& term11 = term1.template reference<Times<T>>().term1();
+    auto& term12 = term1.template reference<Times<T>>().term2();
+    auto& term21 = term2.template reference<Times<T>>().term1();
+    auto& term22 = term2.template reference<Times<T>>().term2();
 
-    if (ad11.template isType<Const>() && ad21.template isType<Const>() &&
-        (ad12.expression() == ad22.expression())) {
-      auto result = (ad11 + ad21) * ad12;
+    if (term11.template isType<Const>() && term21.template isType<Const>() &&
+        (term12.expression() == term22.expression())) {
+      auto result = (term11 + term21) * term12;
       return result.simplify();
     }
   }
 
-  return ad1 + ad2;
+  return term1 + term2;
 }
 template <typename T>
-AD<T> operator+(const AD<T>& ad1, const AD<T>& ad2) {
-  return Plus<T>::makeAD(ad1, ad2);
-}
-
-template <typename T>
-AD<T> operator+(const T& value, const AD<T>& ad2) {
-  return Plus<T>::makeAD(AD<T>(value), ad2);
+AD<T> operator+(const AD<T>& term1, const AD<T>& term2) {
+  return Plus<T>::makeAD(term1, term2);
 }
 
 template <typename T>
-AD<T> operator+(const AD<T>& ad1, const T& value) {
-  return Plus<T>::makeAD(ad1, AD<T>(value));
+AD<T> operator+(const T& value, const AD<T>& term2) {
+  return Plus<T>::makeAD(AD<T>(value), term2);
+}
+
+template <typename T>
+AD<T> operator+(const AD<T>& term1, const T& value) {
+  return Plus<T>::makeAD(term1, AD<T>(value));
 }
 
 // Minus
@@ -299,53 +301,53 @@ AD<T> Minus<T>::simplifyImpl() const {
   using Const = typename AD<T>::Const;
   using Times = Times<T>;
 
-  auto ad1 = this->adFirst().simplify();
-  auto ad2 = this->adSecond().simplify();
+  auto term1 = this->term1().simplify();
+  auto term2 = this->term2().simplify();
 
-  if (ad1.template isType<Const>() && ad2.template isType<Const>()) {
-    return AD<T>(f(value(ad1), value(ad2)));
+  if (term1.template isType<Const>() && term2.template isType<Const>()) {
+    return AD<T>(f(value(term1), value(term2)));
   }
 
   // Convert to AD<T>::Const - Expression if possible
-  if (ad2.template isType<Const>()) {
-    std::swap(ad1, ad2);
+  if (term2.template isType<Const>()) {
+    std::swap(term1, term2);
   }
 
   // 0 - Expression -> -Expression
-  if (ad1.template isType<Const>() && Util::almostEqual(value(ad1), 0)) {
-    return -ad2;
+  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
+    return -term2;
   }
 
   // (c1 * Expression) + (c2 * Expression) = (c1 + c2) * Expression
-  if (ad1.template isType<Times>() && ad2.template isType<Times>()) {
-    auto& ad11 = ad1.template reference<Times>().adFirst();
-    auto& ad12 = ad1.template reference<Times>().adSecond();
-    auto& ad21 = ad2.template reference<Times>().adFirst();
-    auto& ad22 = ad2.template reference<Times>().adSecond();
+  if (term1.template isType<Times>() && term2.template isType<Times>()) {
+    auto& term11 = term1.template reference<Times>().term1();
+    auto& term12 = term1.template reference<Times>().term2();
+    auto& term21 = term2.template reference<Times>().term1();
+    auto& term22 = term2.template reference<Times>().term2();
 
-    if (ad11.template isType<Const>() && ad21.template isType<Const>() &&
-        (ad12.expression() == ad22.expression())) {
-      auto result = (ad11 + ad21) * ad12;
+    if (term11.template isType<Const>() && term21.template isType<Const>() &&
+        (term12.expression() == term22.expression())) {
+      auto result = (term11 + term21) * term12;
       return result.simplify();
     }
   }
 
-  return ad1 - ad2;
+  return term1 - term2;
 }
 
 template <typename T>
-AD<T> operator-(const AD<T>& ad1, const AD<T>& ad2) {
-  return Minus<T>::makeAD(ad1, ad2);
+AD<T> operator-(const AD<T>& term1, const AD<T>& term2) {
+  return Minus<T>::makeAD(term1, term2);
 }
 
 template <typename T>
-AD<T> operator-(const T& value, const AD<T>& ad2) {
-  return Minus<T>::makeAD(AD<T>(value), ad2);
+AD<T> operator-(const T& value, const AD<T>& term2) {
+  return Minus<T>::makeAD(AD<T>(value), term2);
 }
 
 template <typename T>
-AD<T> operator-(const AD<T>& ad1, const T& value) {
-  return Minus<T>::makeAD(ad1, AD<T>(value));
+AD<T> operator-(const AD<T>& term1, const T& value) {
+  return Minus<T>::makeAD(term1, AD<T>(value));
 }
 
 // Times
@@ -353,55 +355,55 @@ template <typename T>
 AD<T> Times<T>::simplifyImpl() const {
   using Const = typename AD<T>::Const;
 
-  auto ad1 = this->adFirst().simplify();
-  auto ad2 = this->adSecond().simplify();
+  auto term1 = this->term1().simplify();
+  auto term2 = this->term2().simplify();
 
-  if (ad1.template isType<Const>() && ad2.template isType<Const>()) {
-    return AD<T>(f(value(ad1), value(ad2)));
+  if (term1.template isType<Const>() && term2.template isType<Const>()) {
+    return AD<T>(f(value(term1), value(term2)));
   }
 
   // Convert to AD<T>::Const * Expression if possible
-  if (ad2.template isType<Const>()) {
-    std::swap(ad1, ad2);
+  if (term2.template isType<Const>()) {
+    std::swap(term1, term2);
   }
 
   // 0 * Exression -> 0
-  if (ad1.template isType<Const>() && Util::almostEqual(value(ad1), 0)) {
+  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
     return AD<T>(0);
   }
 
   // 1 * Exression -> Expression
-  if (ad1.template isType<Const>() && Util::almostEqual(value(ad1), 1)) {
-    return ad2;
+  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 1)) {
+    return term2;
   }
 
-  if (ad2.template isType<Times>()) {
+  if (term2.template isType<Times>()) {
     // AD<T>::Const * (AD<T>::Const * Expression) -> AD<T>::Const * expression
-    auto ad2Ptr = ad2.template pointer<Times>();
-    if (ad1.template isType<Const>() &&
-        ad2Ptr->adFirst().template isType<Const>()) {
+    auto term2Ptr = term2.template pointer<Times>();
+    if (term1.template isType<Const>() &&
+        term2Ptr->term1().template isType<Const>()) {
       auto result =
-          AD<T>(f(value(ad1), value(ad2Ptr->adFirst()))) * ad2Ptr->adSecond();
+          AD<T>(f(value(term1), value(term2Ptr->term1()))) * term2Ptr->term2();
       return result.simplify();
     }
   }
 
-  return ad1 * ad2;
+  return term1 * term2;
 }
 
 template <typename T>
-AD<T> operator*(const AD<T>& ad1, const AD<T>& ad2) {
-  return Times<T>::makeAD(ad1, ad2);
+AD<T> operator*(const AD<T>& term1, const AD<T>& term2) {
+  return Times<T>::makeAD(term1, term2);
 }
 
 template <typename T>
-AD<T> operator*(const T& value, const AD<T>& ad2) {
-  return Times<T>::makeAD(AD<T>(value), ad2);
+AD<T> operator*(const T& value, const AD<T>& term2) {
+  return Times<T>::makeAD(AD<T>(value), term2);
 }
 
 template <typename T>
-AD<T> operator*(const AD<T>& ad1, const T& value) {
-  return Times<T>::makeAD(ad1, AD<T>(value));
+AD<T> operator*(const AD<T>& term1, const T& value) {
+  return Times<T>::makeAD(term1, AD<T>(value));
 }
 
 // Divide
@@ -409,34 +411,34 @@ template <typename T>
 AD<T> Divide<T>::simplifyImpl() const {
   using Const = typename AD<T>::Const;
 
-  auto ad1 = this->adFirst().simplify();
-  auto ad2 = this->adSecond().simplify();
+  auto term1 = this->term1().simplify();
+  auto term2 = this->term2().simplify();
 
-  if (ad1.template isType<Const>() && ad2.template isType<Const>()) {
-    return AD<T>(f(value(ad1), value(ad2)));
+  if (term1.template isType<Const>() && term2.template isType<Const>()) {
+    return AD<T>(f(value(term1), value(term2)));
   }
 
   // Expression / AD<T>::Const -> AD<T>::Const * Expression;
-  if (ad2.template isType<Const>()) {
-    return AD<T>(1.0 / value(ad2)) * ad1;
+  if (term2.template isType<Const>()) {
+    return AD<T>(1.0 / value(term2)) * term1;
   }
 
-  return ad1 / ad2;
+  return term1 / term2;
 }
 
 template <typename T>
-AD<T> operator/(const AD<T>& ad1, const AD<T>& ad2) {
-  return Divide<T>::makeAD(ad1, ad2);
+AD<T> operator/(const AD<T>& term1, const AD<T>& term2) {
+  return Divide<T>::makeAD(term1, term2);
 }
 
 template <typename T>
-AD<T> operator/(const T& value, const AD<T>& ad2) {
-  return Divide<T>::makeAD(AD<T>(value), ad2);
+AD<T> operator/(const T& value, const AD<T>& term2) {
+  return Divide<T>::makeAD(AD<T>(value), term2);
 }
 
 template <typename T>
-AD<T> operator/(const AD<T>& ad1, const T& value) {
-  return Divide<T>::makeAD(ad1, AD<T>(value));
+AD<T> operator/(const AD<T>& term1, const T& value) {
+  return Divide<T>::makeAD(term1, AD<T>(value));
 }
 
 // Pow
@@ -444,29 +446,29 @@ template <typename T>
 AD<T> Pow<T>::simplifyImpl() const {
   using Const = typename AD<T>::Const;
 
-  auto ad1 = this->adFirst().simplify();
-  auto ad2 = this->adSecond().simplify();
+  auto term1 = this->term1().simplify();
+  auto term2 = this->term2().simplify();
 
-  if (ad1.template isType<Const>() && ad2.template isType<Const>()) {
-    return AD<T>(f(value(ad1), value(ad2)));
+  if (term1.template isType<Const>() && term2.template isType<Const>()) {
+    return AD<T>(f(value(term1), value(term2)));
   }
 
   // Expression / AD<T>::Const -> AD<T>::Const * Expression;
-  if (ad2.template isType<Const>()) {
-    if (Util::almostEqual(value(ad2), 1)) {
-      return ad1;
+  if (term2.template isType<Const>()) {
+    if (Util::almostEqual(value(term2), 1)) {
+      return term1;
     }
-    if (Util::almostEqual(value(ad2), 0)) {
+    if (Util::almostEqual(value(term2), 0)) {
       return AD<T>(1);
     }
   }
 
-  return pow(ad1, ad2);
+  return pow(term1, term2);
 }
 
 template <typename T>
-AD<T> pow(const AD<T>& ad1, const AD<T>& ad2) {
-  return Pow<T>::makeAD(ad1, ad2);
+AD<T> pow(const AD<T>& term1, const AD<T>& term2) {
+  return Pow<T>::makeAD(term1, term2);
 }
 template <typename T>
 AD<T> pow(const AD<T>& ad, const T& value) {
