@@ -1,5 +1,5 @@
-#ifndef UTIL_SINGLETON_H
-#define UTIL_SINGLETON_H
+#ifndef UTIL_SINGLETON_H_
+#define UTIL_SINGLETON_H_
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
@@ -54,4 +54,4 @@ std::unique_ptr<T> Singleton<T>::m_instance = std::unique_ptr<T>();
 
 }  // namespace Util
 
-#endif
+#endif  // UTIL_SINGLETON_H_

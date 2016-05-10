@@ -1,8 +1,9 @@
-#ifndef NUMERICAL_RECIPIES_INTEGRATION_QUADRATURE_H
-#define NUMERICAL_RECIPIES_INTEGRATION_QUADRATURE_H
+#ifndef NUMERICAL_RECIPES_INTEGRATION_QUADRATURE_H_
+#define NUMERICAL_RECIPES_INTEGRATION_QUADRATURE_H_
 
-#include <vector>
 #include <cmath>
+#include <vector>
+#include <limits>
 
 #include "util/util.h"
 
@@ -116,7 +117,7 @@ auto QuadratureTemplate<T>::valuesImpl(const std::function<T(T)>& f, T x_min,
 template <typename T>
 class Simpson : public QuadratureTemplate<T> {
  public:
-  Simpson(size_t nUnits)
+  explicit Simpson(size_t nUnits)
       : QuadratureTemplate<T>(nUnits, {1.0 / 3.0, 4.0 / 3.0, 1.0 / 3.0},
                               {-1.0, 0, 1.0}) {}
 };
@@ -124,7 +125,7 @@ class Simpson : public QuadratureTemplate<T> {
 template <typename T>
 class GaussLobatto4 : public QuadratureTemplate<T> {
  public:
-  GaussLobatto4(size_t nUnits)
+  explicit GaussLobatto4(size_t nUnits)
       : QuadratureTemplate<T>(nUnits,
                               {1.0 / 6.0, 5.0 / 6.0, 5.0 / 6.0, 1.0 / 6.0},
                               {-1.0, -sqrt(1.0 / 5.0), sqrt(1.0 / 5.0), 1.0}) {}
@@ -133,7 +134,7 @@ class GaussLobatto4 : public QuadratureTemplate<T> {
 template <typename T>
 class GaussLobatto5 : public QuadratureTemplate<T> {
  public:
-  GaussLobatto5(size_t nUnits)
+  explicit GaussLobatto5(size_t nUnits)
       : QuadratureTemplate<T>(
             nUnits,
             {1.0 / 10.0, 49.0 / 90.0, 32.0 / 45.0, 49.0 / 90.0, 1.0 / 10.0},
@@ -143,7 +144,7 @@ class GaussLobatto5 : public QuadratureTemplate<T> {
 template <typename T>
 class GaussLegendre3 : public QuadratureTemplate<T> {
  public:
-  GaussLegendre3(size_t nUnits)
+  explicit GaussLegendre3(size_t nUnits)
       : QuadratureTemplate<T>(nUnits, {5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0},
                               {-sqrt(3.0 / 5.0), 0, sqrt(3.0 / 5.0)}) {}
 };
@@ -151,7 +152,7 @@ class GaussLegendre3 : public QuadratureTemplate<T> {
 template <typename T>
 class GaussLegendre4 : public QuadratureTemplate<T> {
  public:
-  GaussLegendre4(size_t nUnits)
+  explicit GaussLegendre4(size_t nUnits)
       : QuadratureTemplate<T>(
             nUnits, {(18.0 + sqrt(30.0)) / 36.0, (18.0 + sqrt(30.0)) / 36.0,
                      (18.0 - sqrt(30.0)) / 36.0, (18.0 - sqrt(30.0)) / 36.0},
@@ -164,4 +165,4 @@ class GaussLegendre4 : public QuadratureTemplate<T> {
 }  // namespace Integration
 }  // namespace NumericalRecipes
 
-#endif
+#endif  // NUMERICAL_RECIPES_INTEGRATION_QUADRATURE_H_

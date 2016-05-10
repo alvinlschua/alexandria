@@ -11,8 +11,7 @@
 #include "util/util.h"
 
 TEST(Util, Gather) {
-  using namespace std;
-  using namespace Util;
+  using Util::gather;
 
   std::vector<int> x({1, 2, 3, 4});
   std::vector<int> indices({0, 0, 1, 3});
@@ -25,11 +24,12 @@ TEST(Util, Gather) {
   std::vector<size_t> indices2({1, 0, 3, 2});
   gather(indices2.cbegin(), indices2.cend(), x.cbegin(), result.begin());
   EXPECT_EQ(result, std::vector<int>({2, 1, 4, 3}));
+
+  // TODO(alvin): add tests for filters
 }
 
 TEST(Util, Scatter) {
-  using namespace std;
-  using namespace Util;
+  using Util::scatter;
 
   std::vector<double> x({1, 2, 3, 4});
   std::vector<size_t> indices({0, 0, 1, 3});
@@ -46,4 +46,6 @@ TEST(Util, Scatter) {
   std::vector<size_t> indices3({2, 0, 1, 3});
   scatter(indices3.cbegin(), indices3.cend(), x.cbegin(), result.begin());
   EXPECT_EQ(result, std::vector<double>({2, 3, 1, 4}));
+
+  // TODO(alvin): add tests for filters
 }

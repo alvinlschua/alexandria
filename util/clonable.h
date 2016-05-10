@@ -1,5 +1,5 @@
-#ifndef UTIL_CLOANABLE_H
-#define UTIL_CLOANABLE_H
+#ifndef UTIL_CLONABLE_H_
+#define UTIL_CLONABLE_H_
 
 #include <memory>
 
@@ -25,4 +25,4 @@ class Clonable {
 
 }  // namespace Util
 
-#endif
+#endif  // UTIL_CLONABLE_H_

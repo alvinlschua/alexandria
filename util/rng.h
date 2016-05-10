@@ -1,9 +1,10 @@
-#ifndef UTIL_RNG_H
-#define UTIL_RNG_H
+#ifndef UTIL_RNG_H_
+#define UTIL_RNG_H_
 
 #include <algorithm>
 #include <random>
 #include <mutex>
+#include <vector>
 
 #include "util/singleton.h"
 #include "util/serializable.h"
@@ -35,8 +36,7 @@ class Rng : public Singleton<Rng>, public Serializable {
 template <typename TDistribution>
 Rng::result_type<TDistribution> Rng::generate(TDistribution distribution,
                                               size_t n) {
-  using namespace std;
-  lock_guard<mutex> lock(mutex_);
+  std::lock_guard<std::mutex> lock(mutex_);
   result_type<TDistribution> result;
 
   result.reserve(n);
@@ -48,6 +48,6 @@ Rng::result_type<TDistribution> Rng::generate(TDistribution distribution,
 
 inline Rng& rng() { return Rng::instance(); }
 
-}  // Util
+}  // namespace Util
 
-#endif
+#endif  // UTIL_RNG_H_

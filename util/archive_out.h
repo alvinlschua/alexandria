@@ -1,8 +1,9 @@
-#ifndef UTIL_ARCHIVE_OUT_H
-#define UTIL_ARCHIVE_OUT_H
+#ifndef UTIL_ARCHIVE_OUT_H_
+#define UTIL_ARCHIVE_OUT_H_
 
 #include <iostream>
 #include <array>
+#include <string>
 #include <vector>
 #include <unordered_set>
 
@@ -122,4 +123,4 @@ ArchiveOut& ArchiveOut::operator%(const std::string& value);
 
 }  // namespace Util
 
-#endif
+#endif  // UTIL_ARCHIVE_OUT_H_

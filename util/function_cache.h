@@ -1,5 +1,5 @@
-#ifndef UTIL_FUNCTION_CACHE_H
-#define UTIL_FUNCTION_CACHE_H
+#ifndef UTIL_FUNCTION_CACHE_H_
+#define UTIL_FUNCTION_CACHE_H_
 
 #include <memory>
 #include <unordered_map>
@@ -17,7 +17,8 @@ class FunctionCache {
   using Result = TResult;
   using Hash = THash;
 
-  FunctionCache(std::function<Result(Input)> function) : function_(function) {}
+  explicit FunctionCache(std::function<Result(Input)> function)
+      : function_(function) {}
 
   // Is the result of the input cached?
   bool isCached(const Input& input) const;
@@ -56,4 +57,4 @@ auto FunctionCache<TInput, TResult, THash>::operator()(const Input& input)
 
 }  // namespace Util
 
-#endif
+#endif  // UTIL_FUNCTION_CACHE_H_

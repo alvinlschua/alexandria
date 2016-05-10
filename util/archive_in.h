@@ -1,8 +1,9 @@
-#ifndef UTIL_ARCHIVE_IN_H
-#define UTIL_ARCHIVE_IN_H
+#ifndef UTIL_ARCHIVE_IN_H_
+#define UTIL_ARCHIVE_IN_H_
 
 #include <iostream>
 #include <array>
+#include <string>
 #include <vector>
 #include <unordered_set>
 
@@ -142,4 +143,4 @@ ArchiveIn& ArchiveIn::operator%(std::string& value);
 
 }  // namespace Util
 
-#endif
+#endif  // UTIL_ARCHIVE_IN_H_

@@ -12,11 +12,10 @@
 #include "util/function_cache.h"
 
 TEST(FunctionCache, Cache) {
-  using namespace std;
-  using namespace Util;
+  using Util::FunctionCache;
 
   FunctionCache<int, std::vector<int>> fn(
-      [](int value) { return vector<int>(10, value); });
+      [](int value) { return std::vector<int>(10, value); });
 
   auto first = fn(1);
   auto second = fn(2);

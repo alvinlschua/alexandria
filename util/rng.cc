@@ -1,22 +1,22 @@
 #include "util/rng.h"
 
+#include <string>
+
 namespace Util {
 
 void Rng::serializeInImpl(ArchiveIn& ar, size_t /*version*/) {
-  using namespace std;
-  lock_guard<mutex> lock(mutex_);
-  auto state = string();
+  std::lock_guard<std::mutex> lock(mutex_);
+  auto state = std::string();
   ar % state;
-  istringstream sin(state);
+  std::istringstream sin(state);
   sin >> generator_;
 }
 
 void Rng::serializeOutImpl(ArchiveOut& ar) const {
-  using namespace std;
-  lock_guard<mutex> lock(mutex_);
-  ostringstream sout;
+  std::lock_guard<std::mutex> lock(mutex_);
+  std::ostringstream sout;
   sout << generator_;
   ar % sout.str();
 }
 
-}  // Util
+}  // namespace Util

@@ -1,8 +1,10 @@
-#ifndef UTIL_UTIL_H
-#define UTIL_UTIL_H
+#ifndef UTIL_UTIL_H_
+#define UTIL_UTIL_H_
 
+#include <algorithm>
 #include <functional>
 #include <iterator>
+#include <limits>
 #include <numeric>
 
 #pragma clang diagnostic push
@@ -77,7 +79,7 @@ int sgn(T val) {
 // TODO(alschua) may need to move this to a cc file
 static int invalid_index = std::numeric_limits<int>::max();
 
-// The gather operation computes 
+// The gather operation computes
 //    result[i] = index[i] != invalid_index ? vector[index[i]] : result[i]
 // over all i.
 template <typename TIterator, typename IndexIterator, typename ResultIterator>
@@ -94,9 +96,9 @@ inline void gather(IndexIterator index_begin, IndexIterator index_end,
                  });
 }
 
-// The scatter operation computes 
+// The scatter operation computes
 //   if(index[i] != invalid_index)
-//     result[index[i]] = vector[i] 
+//     result[index[i]] = vector[i]
 // over all i.
 template <typename TIterator, typename IndexIterator, typename ResultIterator>
 inline void scatter(IndexIterator index_begin, IndexIterator index_end,
@@ -116,4 +118,4 @@ inline void scatter(IndexIterator index_begin, IndexIterator index_end,
 
 }  // namespace Util
 
-#endif
+#endif  // UTIL_UTIL_H_

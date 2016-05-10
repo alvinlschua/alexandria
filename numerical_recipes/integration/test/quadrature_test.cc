@@ -1,3 +1,9 @@
+#include "numerical_recipes/integration/quadrature.h"
+
+#include <iostream>
+
+#include "util/util.h"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundef"
 #pragma clang diagnostic ignored "-Wdeprecated"
@@ -7,14 +13,8 @@
 #include "gtest/gtest.h"
 #pragma clang diagnostic pop
 
-#include <iostream>
-
-#include "numerical_recipes/integration/quadrature.h"
-#include "util/util.h"
-
 TEST(Quadrature, Simpson) {
-  using namespace std;
-  using namespace NumericalRecipes::Integration;
+  using NumericalRecipes::Integration::Simpson;
 
   Simpson<double> integrate(20);
 
@@ -29,8 +29,7 @@ TEST(Quadrature, Simpson) {
 }
 
 TEST(Quadrature, GaussLobatto4) {
-  using namespace std;
-  using namespace NumericalRecipes::Integration;
+  using NumericalRecipes::Integration::GaussLabatto4;
 
   GaussLobatto4<double> integrate(20);
 
@@ -45,8 +44,7 @@ TEST(Quadrature, GaussLobatto4) {
 }
 
 TEST(Quadrature, GaussLobatto5) {
-  using namespace std;
-  using namespace NumericalRecipes::Integration;
+  using NumericalRecipes::Integration::GaussLabatto5;
 
   GaussLobatto5<double> integrate(20);
 
@@ -61,8 +59,7 @@ TEST(Quadrature, GaussLobatto5) {
 }
 
 TEST(Quadrature, GaussLegendre3) {
-  using namespace std;
-  using namespace NumericalRecipes::Integration;
+  using NumericalRecipes::Integration::GaussLegendre3;
 
   GaussLegendre3<double> integrate(20);
 
@@ -77,8 +74,7 @@ TEST(Quadrature, GaussLegendre3) {
 }
 
 TEST(Quadrature, GaussLegendre4) {
-  using namespace std;
-  using namespace NumericalRecipes::Integration;
+  using NumericalRecipes::Integration::GaussLegendre4;
 
   GaussLegendre4<double> integrate(20);
 

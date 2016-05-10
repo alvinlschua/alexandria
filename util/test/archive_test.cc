@@ -14,8 +14,11 @@
 #include "util/util.h"
 
 TEST(Archive, Primitive) {
-  using namespace std;
-  using namespace Util;
+  using std::ostringstream;
+  using std::istringstream;
+  using std::string;
+  using Util::ArchiveOut;
+  using Util::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);
@@ -63,7 +66,7 @@ TEST(Archive, Primitive) {
   string string_out = "abcdefg";
   ar_out % string_out;
 
-  istringstream sin(sout.str());
+  std::istringstream sin(sout.str());
   ArchiveIn ar_in(&sin);
 
   bool bool_in = true;
@@ -124,8 +127,10 @@ TEST(Archive, Primitive) {
 }
 
 TEST(Archive, Array) {
-  using namespace std;
-  using namespace Util;
+  using std::ostringstream;
+  using std::istringstream;
+  using Util::ArchiveOut;
+  using Util::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);
@@ -142,8 +147,10 @@ TEST(Archive, Array) {
 }
 
 TEST(Archive, Vector) {
-  using namespace std;
-  using namespace Util;
+  using std::ostringstream;
+  using std::istringstream;
+  using Util::ArchiveOut;
+  using Util::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);
@@ -167,8 +174,10 @@ TEST(Archive, Vector) {
 }
 
 TEST(Archive, UnorderedSet) {
-  using namespace std;
-  using namespace Util;
+  using std::ostringstream;
+  using std::istringstream;
+  using Util::ArchiveOut;
+  using Util::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);

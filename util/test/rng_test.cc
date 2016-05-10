@@ -12,8 +12,12 @@
 #include "util/rng.h"
 
 TEST(Rng, Serialize) {
-  using namespace std;
-  using namespace Util;
+  using std::ostringstream;
+  using std::istringstream;
+  using std::uniform_int_distribution;
+  using Util::ArchiveIn;
+  using Util::ArchiveOut;
+  using Util::rng;
 
   // do this to start form some intermediate state
   rng().generate(uniform_int_distribution<int>(-2, 4), 100);

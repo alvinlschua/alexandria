@@ -1,5 +1,5 @@
-#ifndef UTIL_SERIALIZABLE_H
-#define UTIL_SERIALIZABLE_H
+#ifndef UTIL_SERIALIZABLE_H_
+#define UTIL_SERIALIZABLE_H_
 
 #include "util/archive_in.h"
 #include "util/archive_out.h"
@@ -42,4 +42,4 @@ class Serializable {
 
 }  // namespace Util
 
-#endif
+#endif  // UTIL_SERIALIZABLE_H_

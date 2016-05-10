@@ -31,8 +31,10 @@ class TestClass : public Util::Serializable {
 };
 
 TEST(Serializable, Class) {
-  using namespace std;
-  using namespace Util;
+  using std::istringstream;
+  using std::ostringstream;
+  using Util::ArchiveIn;
+  using Util::ArchiveOut;
 
   // do this to start form some intermediate state
   TestClass class_out(20, 'd');
