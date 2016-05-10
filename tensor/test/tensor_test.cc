@@ -67,21 +67,20 @@ TEST(Tensor, Constructors) {
 TEST(Tensor, AddSubtract) {
   using namespace Util;
   using namespace Tensor;
-  using namespace std;
 
   auto t1 = Tensor<>({{1, 3, 2}, {4, 1, 4}});
   auto t2 = t1 + Tensor<>({{3, 1, 2}, {1, 4, 4}});
-  t1 = plusMove(std::move(t1), Tensor<>({{3, 1, 2}, {1, 4, 4}}));
+  t1 = plus(std::move(t1), Tensor<>({{3, 1, 2}, {1, 4, 4}}));
   EXPECT_EQ(t2, Tensor<>({{4, 4, 4}, {5, 5, 8}}));
   EXPECT_EQ(t2, t1);
 
   auto t3 = Tensor<>({{1, 3, 2}, {4, 1, 4}});
-  t3 = plusMove(std::move(t3), Tensor<>({{3, 1, 2}, {1, 4, 4}}));
+  t3 = plus(std::move(t3), Tensor<>({{3, 1, 2}, {1, 4, 4}}));
   EXPECT_EQ(t3, t2);
 
   t1 = Tensor<>({{1, 3, 2}, {4, 1, 4}});
   t2 = t1 - Tensor<>({{3, 1, 2}, {1, 4, 4}});
-  t1 = minusMove(std::move(t1), Tensor<>({{3, 1, 2}, {1, 4, 4}}));
+  t1 = minus(std::move(t1), Tensor<>({{3, 1, 2}, {1, 4, 4}}));
   /*
   t1.subtract(Tensor<>::make(Shape({2, 3}), {3, 1, 3, 1, 2, 1}));
   EXPECT_EQ(t1, Tensor<>::make(Shape({2, 3}), {1, 3, 1, 4, 3, 7}));

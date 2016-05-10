@@ -175,58 +175,76 @@ bool operator!=(const Tensor<T>& t1, const Tensor<T>& t2) {
 }
 
 template <typename T>
-Tensor<T> plus(const Tensor<T>& t1, const Tensor<T>& t2) {
-  if (t1.shape() != t2.shape()) {
+Tensor<T> apply(Tensor<T> result, const Tensor<T>& t2,
+                std::function<T(T, T)> fn) {
+  if (result.shape() != t2.shape()) {
     throw std::invalid_argument("shapes are not the same");
   }
-  auto result = t1;
   std::transform(result.cbegin(), result.cend(), t2.cbegin(), result.begin(),
-                 [](T x, T y) { return x + y; });
+                 fn);
+
   return result;
 }
 
 template <typename T>
-Tensor<T> operator+(const Tensor<T>& t1, const Tensor<T>& t2) {
+Tensor<T> apply(Tensor<T> result, std::function<T(T)> fn) {
+  std::transform(result.cbegin(), result.cend(), result.cbegin(), fn);
+  return result;
+}
+
+template <typename T>
+inline Tensor<T> operator+(const Tensor<T>& t1, const Tensor<T>& t2) {
   return plus(t1, t2);
 }
 
 template <typename T>
-Tensor<T> plusMove(Tensor<T> t1, const Tensor<T>& t2) {
-  if (t1.shape() != t2.shape()) {
-    throw std::invalid_argument("shapes are not the same");
-  }
-  auto result = std::move(t1);
-  std::transform(result.cbegin(), result.cend(), t2.cbegin(), result.begin(),
-                 [](T x, T y) { return x + y; });
-
-  return result;
+inline Tensor<T> plus(Tensor<T> result, const Tensor<T>& t2) {
+  return apply<T>(std::move(result), t2, [](T x, T y) { return x + y; });
 }
 
 template <typename T>
-Tensor<T> minus(const Tensor<T>& t1, const Tensor<T>& t2) {
-  if (t1.shape() != t2.shape()) {
-    throw std::invalid_argument("shapes are not the same");
-  }
-  auto result = t1;
-  std::transform(result.cbegin(), result.cend(), t2.cbegin(), result.begin(),
-                 [](T x, T y) { return x - y; });
-  return result;
-}
-
-template <typename T>
-Tensor<T> operator-(const Tensor<T>& t1, const Tensor<T>& t2) {
+inline Tensor<T> operator-(const Tensor<T>& t1, const Tensor<T>& t2) {
   return minus(t1, t2);
 }
 
 template <typename T>
-Tensor<T> minusMove(Tensor<T> t1, const Tensor<T>& t2) {
-  if (t1.shape() != t2.shape()) {
-    throw std::invalid_argument("shapes are not the same");
-  }
-  auto result = std::move(t1);
-  std::transform(result.cbegin(), result.cend(), t2.cbegin(), result.begin(),
-                 [](T x, T y) { return x - y; });
-  return result;
+inline Tensor<T> minus(Tensor<T> result, const Tensor<T>& t2) {
+  return apply<T>(std::move(result), t2, [](T x, T y) { return x - y; });
+}
+
+template <typename T>
+inline Tensor<T> multiply(Tensor<T> result, T value) {
+  return apply(std::move(result), [value](T x) { return value * x; });
+}
+
+template <typename T>
+inline Tensor<T> operator*(const Tensor<T>& t1, T value) {
+  return multiply(t1, value);
+}
+
+template <typename T>
+inline Tensor<T> operator*(T value, const Tensor<T>& t1) {
+  return multiply(t1, value);
+}
+
+template <typename T>
+inline Tensor<T> divide(Tensor<T> result, T value) {
+  return apply(std::move(result), [value](T x) { return x / value; });
+}
+
+template <typename T>
+inline Tensor<T> operator/(const Tensor<T>& t1, T value) {
+  return divide(t1, value);
+}
+
+template <typename T>
+inline Tensor<T> unaryMinus(Tensor<T> result) {
+  return apply(std::move(result), [](T x) { return -x; });
+}
+
+template <typename T>
+inline Tensor<T> operator-(const Tensor<T>& result) {
+  return unaryMinus(result);
 }
 
 // General multiplication of indices with the same index.
