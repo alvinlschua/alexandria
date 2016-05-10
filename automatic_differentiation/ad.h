@@ -11,8 +11,12 @@
 namespace AutomaticDifferentiation {
 
 // A wrapper class that implements a simple for of type erasure.
+template <typename T>
 class AD {
  public:
+  using VarValue = std::pair<AD<T>, T>;
+  using VarValues = std::vector<VarValue>;
+
   class Expression;
   class Const;
   class Param;
@@ -20,22 +24,20 @@ class AD {
   class Unary;
   class Binary;
 
-  using VarValue = std::pair<const AD&, double>;
-  using VarValues = std::vector<VarValue>;
   using Ptr = std::unique_ptr<Expression>;
 
   // Default constructor.
   AD() {}
 
   // Make constant.
-  explicit AD(double value);
+  explicit AD(const T& value);
 
   // Make var.
   explicit AD(const std::string& identifier);
 
   // Make param. Params can be treated as variables, but have an associated set
   // of values.
-  explicit AD(const std::string& identifier, double value);
+  explicit AD(const std::string& identifier, const T& value);
 
   // Construct from a ptr.
   explicit AD(Ptr ptr) : ptr_(std::move(ptr)) {}
@@ -46,38 +48,40 @@ class AD {
   // Copy assignment.
   AD& operator=(const AD& ad);
 
-  // Produce a VarValue when assigning double to a var.  Not that this is not a
+  // Produce a VarValue when assigning T to a var.  Not that this is not a
   // constructor, but is implemented for notation.
-  AD::VarValue operator=(double value);
+  AD::VarValue operator=(const T& value);
 
   // Differentiate with respect to AD::Var.
-  AD differentiate(const AD& var) const;
+  AD differentiate(const AD& var) const { return ptr_->differentiate(var); }
 
   // Evaluate the expression with concrete values for AD::Var.
-  AD evaluateAt(const VarValues& varValues) const;
-
-  // Simplify the expression.
-  AD simplify() const;
-
-  // Get the expression as a string.
-  std::string expression() const;
-
-  // Is this of type T?
-  template <typename T>
-  bool isType() const {
-    return pointer<T>() != nullptr;
+  AD evaluateAt(const VarValues& varValues) const {
+    return ptr_->evaluateAt(varValues);
   }
 
-  // Cast this to type T.  A nullptr is return is it cannot be cast.
-  template <typename T>
-  T* pointer() const {
-    return dynamic_cast<T*>(ptr_.get());
+  // Simplify the expression.
+  AD simplify() const { return ptr_->simplify(); }
+
+  // Get the expression as a string.
+  std::string expression() const { return ptr_->expression(); }
+
+  // Is this of type U?
+  template <typename U>
+  bool isType() const {
+    return pointer<U>() != nullptr;
+  }
+
+  // Cast this to type U.  A nullptr is return is it cannot be cast.
+  template <typename U>
+  U* pointer() const {
+    return dynamic_cast<U*>(ptr_.get());
   }
 
   // Cast this to reference of type T.  This fails if isType<T> is false.
-  template <typename T>
-  T& reference() const {
-    auto result = pointer<T>();
+  template <typename U>
+  U& reference() const {
+    auto result = pointer<U>();
     if (result == nullptr) {
       throw std::logic_error(std::string("unable to cast to ") +
                              typeid(T).name() + "in castReference");
@@ -89,24 +93,117 @@ class AD {
   Ptr ptr_;
 };
 
-// Gets the value when ad is a Const.
-double value(const AD& ad);
+template <typename T>
+AD<T>::AD(const T& value)
+    : ptr_(Const::make(value)) {}
 
-// Gets the identifier when ad is a Var.
-std::string identifier(const AD& ad);
+template <typename T>
+AD<T>::AD(const std::string& identifier)
+    : ptr_(Var::make(identifier)) {
+  if (identifier.size() == 0)
+    throw std::invalid_argument("identifier should be specified");
+
+  if (identifier.size() > 8)
+    throw std::invalid_argument("identifier should have at most 8 characters");
+
+  std::locale loc;
+  if (!std::isalpha(identifier[0], loc))
+    throw std::invalid_argument("identifier should start with a letter");
+}
+
+template <typename T>
+AD<T>::AD(const std::string& identifier, const T& value)
+    : ptr_(Param::make(identifier, value)) {
+  if (identifier.size() == 0)
+    throw std::invalid_argument("identifier should be specified");
+
+  if (identifier.size() > 8)
+    throw std::invalid_argument("identifier should have at most 8 characters");
+
+  std::locale loc;
+  if (!std::isalpha(identifier[0], loc))
+    throw std::invalid_argument("identifier should start with a letter");
+}
+
+template <typename T>
+AD<T>::AD(const AD& ad) {
+  ptr_ = std::move(ad.ptr_->clone());
+}
+
+template <typename T>
+AD<T>& AD<T>::operator=(const AD& ad) {
+  ptr_ = std::move(ad.ptr_->clone());
+  return *this;
+}
+
+template <typename T>
+typename AD<T>::VarValue AD<T>::operator=(const T& value) {
+  CHECK(isType<AD::Var>()) << "should only assign T to a Var type";
+  return AD::VarValue(*this, value);
+}
 
 // Differentiate.
-inline AD D(const AD& expr, const AD& var) { return expr.differentiate(var); }
-
-// Differentiate, multivariate.
-AD D(const AD& expr, const std::vector<AD>& vars);
+template <typename T>
+inline AD<T> D(const AD<T>& expr, const AD<T>& var) {
+  return expr.differentiate(var);
+}
 
 // TODO(alvin) Make ADVector its own class and provide methods like evaluateAt
 // and simplify.
-using ADVector = std::vector<AD>;
+template <typename T>
+using ADVector = std::vector<AD<T>>;
+
+template <typename T>
+ADVector<T> grad(const AD<T>& expr, const std::vector<AD<T>>& vars);
+
+// Gets the value when ad is a Const.
+template <typename T>
+T value(const AD<T>& ad) {
+  using Const = typename AD<T>::Const;
+  using Param = typename AD<T>::Param;
+
+  if (ad.template isType<Const>()) {
+    return ad.template reference<Const>().value();
+  } else if (ad.template isType<Param>()) {
+    return ad.template reference<Param>().value();
+  } else {
+    throw std::invalid_argument("type is not a const nor a param.");
+  }
+}
+
+template <typename T>
+std::string identifier(const AD<T>& ad) {
+  using Var = typename AD<T>::Var;
+  using Param = typename AD<T>::Param;
+
+  if (ad.template isType<Var>()) {
+    return ad.template reference<Var>().identifier();
+  } else if (ad.template isType<Param>()) {
+    return ad.template reference<Param>().identifier();
+  } else {
+    throw std::invalid_argument("type is not a var nor a param.");
+  }
+}
+
+template <typename T>
+AD<T> D(const AD<T>& expr, const std::vector<AD<T>>& vars) {
+  AD<T> result(expr);
+  for (const auto& var : vars) {
+    result = D(result, var);
+  }
+  return result;
+}
 
 // Grad operator.
-ADVector grad(const AD& expr, const std::vector<AD>& vars);
+template <typename T>
+ADVector<T> grad(const AD<T>& expr, const std::vector<AD<T>>& vars) {
+  ADVector<T> result;
+  result.reserve(vars.size());
+  for (const auto& var : vars) {
+    result.emplace_back(D(expr, var));
+  }
+  return result;
+}
 
 }  // namespace AutomaticDifferentiation
 

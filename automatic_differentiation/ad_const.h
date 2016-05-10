@@ -7,11 +7,12 @@
 
 namespace AutomaticDifferentiation {
 
-class AD::Const : public Expression {
+template <typename T>
+class AD<T>::Const : public Expression {
  public:
   using VarValues = AD::VarValues;
 
-  static std::unique_ptr<Expression> make(double value) {
+  static std::unique_ptr<Expression> make(const T& value) {
     return Const(value).clone();
   }
 
@@ -19,17 +20,17 @@ class AD::Const : public Expression {
   Const& operator=(const Const&) = default;
   virtual ~Const() {}
 
-  double value() const { return value_; }
+  const T& value() const { return value_; }
 
  private:
   explicit Const(double value) : value_(value) {}
 
-  AD differentiateImpl(const AD& /*var*/) const final { return AD(0); }
+  AD<T> differentiateImpl(const AD<T>& /*var*/) const final { return AD<T>(0); }
 
-  AD simplifyImpl() const final { return AD(value()); }
+  AD<T> simplifyImpl() const final { return AD<T>(value()); }
 
-  AD evaluateAtImpl(const VarValues& /*varValues*/) const final {
-    return AD(value());
+  AD<T> evaluateAtImpl(const VarValues& /*varValues*/) const final {
+    return AD<T>(value());
   }
 
   std::string expressionImpl() const final { return std::to_string(value()); }
@@ -38,7 +39,7 @@ class AD::Const : public Expression {
     return std::make_unique<Const>(*this);
   }
 
-  double value_;
+  T value_;
 };
 
 }  // namespace AutomaticDifferentiation

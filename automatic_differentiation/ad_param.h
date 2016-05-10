@@ -11,9 +11,10 @@
 
 namespace AutomaticDifferentiation {
 
-class AD::Param : public Expression {
+template<typename T>
+class AD<T>::Param : public Expression {
  public:
-  using VarValues = AD::VarValues;
+  using VarValues = AD<T>::VarValues;
 
   static std::unique_ptr<Expression> make(const std::string& identifier,
                                           double value) {
@@ -31,16 +32,16 @@ class AD::Param : public Expression {
   explicit Param(const std::string& identifier, double value)
       : identifier_(identifier), value_(value) {}
 
-  AD differentiateImpl(const AD& var) const final {
-    return AD(identifier() == AutomaticDifferentiation::identifier(var) ? 1
+  AD<T> differentiateImpl(const AD<T>& var) const final {
+    return AD<T>(identifier() == AutomaticDifferentiation::identifier(var) ? 1
                                                                         : 0);
   }
 
-  AD evaluateAtImpl(const VarValues& /*varValues*/) const final {
-    return AD(identifier(), value());
+  AD<T> evaluateAtImpl(const VarValues& /*varValues*/) const final {
+    return AD<T>(identifier(), value());
   }
 
-  AD simplifyImpl() const final { return AD(identifier(), value()); }
+  AD<T> simplifyImpl() const final { return AD<T>(identifier(), value()); }
 
   std::string expressionImpl() const final { return identifier(); }
 

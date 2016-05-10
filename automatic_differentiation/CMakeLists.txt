@@ -43,10 +43,7 @@ endif()
 
 include_directories(${GLOG_INCLUDE_DIRS} ${GTEST_INCLUDE_DIRS} ${X11_INCLUDE_DIR} "../")
 
-add_library(ad ad.cc ad_expression.cc ad_unary.cc ad_binary.cc)
-
 add_executable(ad_test test/ad_test.cc)
-target_link_libraries(ad_test ad)
 target_link_libraries(ad_test ${GLOG_LIBRARIES})
 target_link_libraries(ad_test ${GTEST_LIBRARIES})
 target_link_libraries(ad_test ${GTEST_MAIN_LIBRARIES})
