@@ -1,3 +1,10 @@
+#include <cmath>
+#include "automatic_differentiation/ad.h"
+#include "automatic_differentiation/ad_binary.h"
+#include "automatic_differentiation/ad_const.h"
+#include "automatic_differentiation/ad_var.h"
+#include "automatic_differentiation/ad_unary.h"
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundef"
 #pragma clang diagnostic ignored "-Wdeprecated"
@@ -7,15 +14,8 @@
 #include "gtest/gtest.h"
 #pragma clang diagnostic pop
 
-#include <cmath>
-#include <automatic_differentiation/ad.h>
-#include <automatic_differentiation/ad_binary.h>
-#include <automatic_differentiation/ad_const.h>
-#include <automatic_differentiation/ad_var.h>
-#include <automatic_differentiation/ad_unary.h>
-
 TEST(AD, Basic) {
-  using namespace AutomaticDifferentiation;
+  using AutomaticDifferentiation::AD;
   AD c(5.0);
 
   AD x("x");
@@ -54,7 +54,7 @@ TEST(AD, Basic) {
 }
 
 TEST(AD, ConstAndVar) {
-  using namespace AutomaticDifferentiation;
+  using AutomaticDifferentiation::AD;
   auto c = AD(5.0);
   auto x = AD("x");
   auto y = AD("y");
@@ -70,7 +70,7 @@ TEST(AD, ConstAndVar) {
 }
 
 TEST(AD, Exceptions) {
-  using namespace AutomaticDifferentiation;
+  using AutomaticDifferentiation::AD;
   auto c = AD(5.0);
   auto x = AD("x");
   auto y = AD("y");
@@ -90,7 +90,7 @@ TEST(AD, Exceptions) {
 }
 
 TEST(AD, Op) {
-  using namespace AutomaticDifferentiation;
+  using AutomaticDifferentiation::AD;
   auto x = AD("x");
   auto y = AD("y");
   auto z = AD("z");

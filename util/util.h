@@ -68,14 +68,18 @@ inline bool almostEqual(float A, float B, int maxUlps) {
   return false;
 }
 
+// Compute sgn of a value.
 template <typename T>
 int sgn(T val) {
   return (T(0) < val) - (val < T(0));
 }
 
+// TODO(alschua) may need to move this to a cc file
 static int invalid_index = std::numeric_limits<int>::max();
 
-// The gather operation computes result[i] = vector[index[i]] over all i.
+// The gather operation computes 
+//    result[i] = index[i] != invalid_index ? vector[index[i]] : result[i]
+// over all i.
 template <typename TIterator, typename IndexIterator, typename ResultIterator>
 inline void gather(IndexIterator index_begin, IndexIterator index_end,
                    TIterator begin, ResultIterator result_begin,
@@ -90,7 +94,10 @@ inline void gather(IndexIterator index_begin, IndexIterator index_end,
                  });
 }
 
-// The scatter operation computes result[index[i]] = vector[i] over all i.
+// The scatter operation computes 
+//   if(index[i] != invalid_index)
+//     result[index[i]] = vector[i] 
+// over all i.
 template <typename TIterator, typename IndexIterator, typename ResultIterator>
 inline void scatter(IndexIterator index_begin, IndexIterator index_end,
                     TIterator begin, ResultIterator result_begin,

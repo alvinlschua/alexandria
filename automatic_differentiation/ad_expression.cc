@@ -15,4 +15,4 @@ AD AD::Expression::evaluateAt(const VarValues& varValues) const {
   }
   return evaluateAtImpl(varValues);
 }
-}
+}  // namespace AutomaticDifferentiation

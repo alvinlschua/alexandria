@@ -1,5 +1,5 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_VAR_H
-#define AUTOMATIC_DIFFERENTIATION_AD_VAR_H
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_VAR_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_VAR_H_
 
 #include <locale>
 #include <memory>
@@ -26,7 +26,7 @@ class AD::Var : public Expression {
   const std::string& identifier() const { return identifier_; }
 
  private:
-  Var(const std::string& identifier) : identifier_(identifier) {}
+  explicit Var(const std::string& identifier) : identifier_(identifier) {}
 
   AD differentiateImpl(const AD& var) const final {
     namespace ADiff = ::AutomaticDifferentiation;
@@ -53,6 +53,6 @@ class AD::Var : public Expression {
   std::string identifier_;
 };
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation
 
-#endif
+#endif  // AUTOMATIC_DIFFERENTIATION_AD_VAR_H_

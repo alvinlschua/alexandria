@@ -1,5 +1,5 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H
-#define AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H_
 
 #include <memory>
 #include <string>
@@ -38,6 +38,6 @@ class AD::Expression : public Util::Clonable<AD::Expression> {
   virtual std::string expressionImpl() const = 0;
 };
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation
 
-#endif
+#endif  //  AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H_

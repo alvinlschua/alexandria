@@ -1,5 +1,7 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_CONST_H
-#define AUTOMATIC_DIFFERENTIATION_AD_CONST_H
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_CONST_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_CONST_H_
+
+#include <string>
 
 #include "automatic_differentiation/ad_expression.h"
 
@@ -20,7 +22,7 @@ class AD::Const : public Expression {
   double value() const { return value_; }
 
  private:
-  Const(double value) : value_(value) {}
+  explicit Const(double value) : value_(value) {}
 
   AD differentiateImpl(const AD& /*var*/) const final { return AD(0); }
 
@@ -39,6 +41,6 @@ class AD::Const : public Expression {
   double value_;
 };
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation
 
-#endif
+#endif  // AUTOMATIC_DIFFERENTIATION_AD_CONST_H_

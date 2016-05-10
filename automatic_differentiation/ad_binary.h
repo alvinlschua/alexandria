@@ -1,5 +1,5 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_BINARY_H
-#define AUTOMATIC_DIFFERENTIATION_AD_BINARY_H
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_BINARY_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_BINARY_H_
 
 #include <locale>
 #include <memory>
@@ -214,7 +214,8 @@ class Pow : public AD::Binary {
   }
 
   std::string expressionImpl() const {
-    return "pow(" + adFirst().expression() + " , " + adSecond().expression() + ")";
+    return "pow(" + adFirst().expression() + " , " + adSecond().expression() +
+           ")";
   }
 
   AD simplifyImpl() const final;
@@ -224,6 +225,6 @@ AD pow(const AD& ad1, const AD& ad2);
 AD pow(const AD& ad, double value);
 AD pow(double value, const AD& ad);
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation
 
-#endif
+#endif  // AUTOMATIC_DIFFERENTIATION_AD_BINARY_H_

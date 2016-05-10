@@ -1,5 +1,5 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_UNARY_H
-#define AUTOMATIC_DIFFERENTIATION_AD_UNARY_H
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_UNARY_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_UNARY_H_
 
 #include <locale>
 #include <memory>
@@ -17,7 +17,7 @@ class AD::Unary : public Expression {
  public:
   using VarValues = AD::VarValues;
 
-  Unary(const AD& ad) : ad_(ad) {}
+  explicit Unary(const AD& ad) : ad_(ad) {}
   Unary(const Unary&) = default;
   Unary& operator=(const Unary&) = default;
 
@@ -54,7 +54,7 @@ class UnaryMinus : public AD::Unary {
   static AD makeAD(const AD& ad) { return AD(UnaryMinus(ad).clone()); }
 
  private:
-  UnaryMinus(const AD& ad) : Unary(ad) {}
+  explicit UnaryMinus(const AD& ad) : Unary(ad) {}
 
   double f(double value) const final;
   AD dF() const final;
@@ -85,7 +85,7 @@ class Sin : public AD::Unary {
   static AD makeAD(const AD& ad) { return AD(Sin(ad).clone()); }
 
  private:
-  Sin(const AD& ad) : AD::Unary(ad) {}
+  explicit Sin(const AD& ad) : AD::Unary(ad) {}
 
   double f(double value) const final;
   AD dF() const final;
@@ -110,7 +110,7 @@ class Cos : public AD::Unary {
   static AD makeAD(const AD& ad) { return AD(Cos(ad).clone()); }
 
  private:
-  Cos(const AD& ad) : Unary(ad) {}
+  explicit Cos(const AD& ad) : Unary(ad) {}
 
   double f(double value) const final;
   AD dF() const final;
@@ -135,7 +135,7 @@ class Exp : public AD::Unary {
   static AD makeAD(const AD& ad) { return AD(Exp(ad).clone()); }
 
  private:
-  Exp(const AD& ad) : Unary(ad) {}
+  explicit Exp(const AD& ad) : Unary(ad) {}
 
   double f(double value) const final;
   AD dF() const final;
@@ -160,7 +160,7 @@ class Log : public AD::Unary {
   static AD makeAD(const AD& ad) { return AD(Log(ad).clone()); }
 
  private:
-  Log(const AD& ad) : Unary(ad) {}
+  explicit Log(const AD& ad) : Unary(ad) {}
 
   double f(double value) const final;
   AD dF() const final;
@@ -174,6 +174,6 @@ class Log : public AD::Unary {
 
 AD log(const AD& ad);
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation
 
-#endif
+#endif  // AUTOMATIC_DIFFERENTIATION_AD_UNARY_H_

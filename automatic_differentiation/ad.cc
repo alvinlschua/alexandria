@@ -64,4 +64,4 @@ ADVector grad(const AD& expr, const std::vector<AD>& vars) {
   return result;
 }
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation

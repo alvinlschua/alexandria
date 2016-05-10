@@ -1,9 +1,10 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_H
-#define AUTOMATIC_DIFFERENTIATION_AD_H
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_H_
 
 #include <vector>
 #include <string>
 #include <memory>
+#include <utility>
 
 #include "glog/logging.h"
 
@@ -102,6 +103,6 @@ using ADVector = std::vector<AD>;
 // Grad operator.
 ADVector grad(const AD& expr, const std::vector<AD>& vars);
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation
 
-#endif
+#endif  // AUTOMATIC_DIFFERENTIATION_AD_H_

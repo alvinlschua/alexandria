@@ -64,4 +64,4 @@ double Log::f(double value) const { return std::log(value); }
 AD Log::dF() const { return 1.0 / ad_; }
 AD log(const AD& ad) { return Log::makeAD(ad); }
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation

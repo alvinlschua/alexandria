@@ -1,8 +1,10 @@
 #include "automatic_differentiation/ad_binary.h"
-#include "automatic_differentiation/ad_unary.h"
 
-#include <Util/util.h>
 #include <cmath>
+#include <utility>
+
+#include "automatic_differentiation/ad_unary.h"
+#include "util/util.h"
 
 namespace AutomaticDifferentiation {
 
@@ -256,4 +258,4 @@ AD pow(const AD& ad1, const AD& ad2) { return Pow::makeAD(ad1, ad2); }
 AD pow(const AD& ad, double value) { return Pow::makeAD(ad, AD(value)); }
 AD pow(double value, const AD& ad) { return Pow::makeAD(AD(value), ad); }
 
-}  // namespace AutomaticDifferntiation
+}  // namespace AutomaticDifferentiation
