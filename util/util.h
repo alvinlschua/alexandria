@@ -73,29 +73,38 @@ int sgn(T val) {
   return (T(0) < val) - (val < T(0));
 }
 
+static int invalid_index = std::numeric_limits<int>::max();
+
 // The gather operation computes result[i] = vector[index[i]] over all i.
 template <typename TIterator, typename IndexIterator, typename ResultIterator>
 inline void gather(IndexIterator index_begin, IndexIterator index_end,
-                   TIterator begin, ResultIterator result_begin) {
-  std::transform(
-      index_begin, index_end, result_begin,
-      [begin](typename IndexIterator::value_type index) {
-        return *(begin +
-                 static_cast<typename IndexIterator::difference_type>(index));
-      });
+                   TIterator begin, ResultIterator result_begin,
+                   std::function<int(int)> reindex = [](int index) {
+                     return index;
+                   }) {
+  std::transform(index_begin, index_end, result_begin,
+                 [begin, result_begin, &reindex](int old_index) {
+                   auto index = reindex(old_index);
+                   return index != invalid_index ? *(begin + index)
+                                                 : *(result_begin + old_index);
+                 });
 }
 
 // The scatter operation computes result[index[i]] = vector[i] over all i.
 template <typename TIterator, typename IndexIterator, typename ResultIterator>
 inline void scatter(IndexIterator index_begin, IndexIterator index_end,
-                    TIterator begin, ResultIterator result_begin) {
+                    TIterator begin, ResultIterator result_begin,
+                    std::function<int(int)> reindex = [](int index) {
+                      return index;
+                    }) {
   typename IndexIterator::difference_type count = 0;
-  std::for_each(
-      index_begin, index_end,
-      [result_begin, begin, &count](typename IndexIterator::value_type index) {
-        *(result_begin + static_cast<typename IndexIterator::difference_type>(
-                             index)) = *(begin + count++);
-      });
+  std::for_each(index_begin, index_end,
+                [result_begin, begin, &count, &reindex](int old_index) {
+                  auto index = reindex(old_index);
+                  if (index != invalid_index) {
+                    *(result_begin + index) = *(begin + count++);
+                  }
+                });
 }
 
 }  // namespace Util
