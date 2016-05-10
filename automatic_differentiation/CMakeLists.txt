@@ -26,6 +26,11 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     message(STATUS "Cxx flags ${CMAKE_CXX_FLAGS}")
 endif()
 
+find_package(gflags)
+if(NOT GFLAGS_FOUND)
+    message(STATUS "gflags not found")
+endif()
+
 find_package(Glog)
 if(NOT GLOG_FOUND)
     message(STATUS "glog not found")
@@ -41,12 +46,12 @@ if(NOT X11_FOUND)
     message(STATUS "x11 not found")
 endif()
 
-include_directories(${GLOG_INCLUDE_DIRS} ${GTEST_INCLUDE_DIRS} ${X11_INCLUDE_DIR} "../")
+include_directories(${GLOG_INCLUDE_DIRS} ${GTEST_INCLUDE_DIRS} ${GFLAGS_INCLUDE_DIRS} ${X11_INCLUDE_DIR} "../")
 
 add_executable(ad_test test/ad_test.cc)
 target_link_libraries(ad_test ${GLOG_LIBRARIES})
 target_link_libraries(ad_test ${GTEST_LIBRARIES})
-target_link_libraries(ad_test ${GTEST_MAIN_LIBRARIES})
+target_link_libraries(ad_test ${GFLAGS_LIBRARIES})
 
 enable_testing()
 add_test(ad ad_test)

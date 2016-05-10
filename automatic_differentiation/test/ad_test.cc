@@ -83,8 +83,8 @@ TEST(AD, Exceptions) {
 
   EXPECT_THROW(value(x), std::logic_error);
   EXPECT_THROW(identifier(c), std::logic_error);
-  //EXPECT_THROW(value(x + y), std::logic_error);
-  //EXPECT_THROW(identifier(x + y), std::logic_error);
+  // EXPECT_THROW(value(x + y), std::logic_error);
+  // EXPECT_THROW(identifier(x + y), std::logic_error);
 
   EXPECT_NO_THROW(value(c));
   EXPECT_NO_THROW(identifier(x));
@@ -144,17 +144,32 @@ TEST(AD, Op) {
   EXPECT_EQ(value(g[1].evaluateAt({x = 1, y = 2})), 1.0 * cos(2.0));
 }
 
-/*
 TEST(AD, Param) {
-  using AutomaticDifferentiation::AD;
+  using AD = AutomaticDifferentiation::AD<double>;
+
   auto x = AD("x");
   auto y = AD("y");
   auto c = AD("c", 5);
 
-  EXPECT_EQ(value(D(c * x, x)), 5);
-  c.reference<AD::Param>().value() = 6;
+  auto expr = c * x;
+  auto diff = D(expr, x);
+  EXPECT_EQ(value(diff), 5);
+  param(c) = 6;
+  EXPECT_EQ(value(expr.evaluateAt({x = 2})), 12);
+  EXPECT_EQ(value(diff), 6);
 
-  EXPECT_EQ(value(D(c * x, x)), 6);
-  EXPECT_EQ(value(D(c * x, c).evaluateAt({x = 1})), 1);
+  auto diff2 = D(expr, c);
+  EXPECT_EQ(value(diff2.evaluateAt({x = 1})), 1);
 }
-*/
+
+int main(int argc, char** argv) {
+  // Disables elapsed time by default.
+  ::testing::GTEST_FLAG(print_time) = false;
+
+  // This allows the user to override the flag on the command line.
+  ::testing::InitGoogleTest(&argc, argv);
+
+  google::InstallFailureSignalHandler();
+
+  return RUN_ALL_TESTS();
+}

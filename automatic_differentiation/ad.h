@@ -186,6 +186,11 @@ std::string identifier(const AD<T>& ad) {
 }
 
 template <typename T>
+T& param(const AD<T>& ad) {
+  return ad.template reference<typename AD<T>::Param>().value();
+}
+
+template <typename T>
 AD<T> D(const AD<T>& expr, const std::vector<AD<T>>& vars) {
   AD<T> result(expr);
   for (const auto& var : vars) {
