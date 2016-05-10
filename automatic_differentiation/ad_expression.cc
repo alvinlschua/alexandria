@@ -1,10 +1,13 @@
 #include "automatic_differentiation/ad_expression.h"
+
+#include "automatic_differentiation/ad_param.h"
 #include "automatic_differentiation/ad_var.h"
 
 namespace AutomaticDifferentiation {
 
 AD AD::Expression::differentiate(const AD& var) const {
-  CHECK(var.isType<AD::Var>()) << "must be of type Var";
+  CHECK(var.isType<AD::Var>() || var.isType<AD::Param>())
+      << "must be of type Var or Param";
   return differentiateImpl(var);
 }
 

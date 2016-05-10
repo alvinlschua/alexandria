@@ -16,8 +16,8 @@ AD AD::Unary::evaluateAtImpl(const VarValues& varValues) const {
   auto ad = !ad_.isType<Const>() ? ad_.evaluateAt(varValues) : ad_;
   ad = ad.simplify();
 
-  if (ad.isType<AD::Const>()) {
-    return AD(f(ad.reference<AD::Const>().value()));
+  if (ad.isType<Const>()) {
+    return AD(f(ad.reference<Const>().value()));
   }
 
   auto ptr = clone();

@@ -3,6 +3,7 @@
 #include "automatic_differentiation/ad_binary.h"
 #include "automatic_differentiation/ad_const.h"
 #include "automatic_differentiation/ad_var.h"
+#include "automatic_differentiation/ad_param.h"
 #include "automatic_differentiation/ad_unary.h"
 
 #pragma clang diagnostic push
@@ -141,4 +142,17 @@ TEST(AD, Op) {
   auto g = grad(sin(x * y), {x, y});
   EXPECT_EQ(value(g[0].evaluateAt({x = 1, y = 2})), 2.0 * cos(2.0));
   EXPECT_EQ(value(g[1].evaluateAt({x = 1, y = 2})), 1.0 * cos(2.0));
+}
+
+TEST(AD, Param) {
+  using AutomaticDifferentiation::AD;
+  auto x = AD("x");
+  auto y = AD("y");
+  auto c = AD("c", 5);
+
+  EXPECT_EQ(value(D(c * x, x)), 5);
+  c.reference<AD::Param>().value() = 6;
+
+  EXPECT_EQ(value(D(c * x, x)), 6);
+  EXPECT_EQ(value(D(c * x, c).evaluateAt({x = 1})), 1);
 }

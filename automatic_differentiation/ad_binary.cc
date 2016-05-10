@@ -18,16 +18,17 @@ AD AD::Binary::differentiateImpl(const AD& var) const {
 }
 
 AD AD::Binary::evaluateAtImpl(const VarValues& varValues) const {
-  auto ad1 = (!adFirst().isType<AD::Const>()) ? adFirst().evaluateAt(varValues)
-                                              : adFirst();
-  auto ad2 = (!adSecond().isType<AD::Const>())
+  auto ad1 = (!adFirst().isType<Const>())
+                 ? adFirst().evaluateAt(varValues)
+                 : adFirst();
+  auto ad2 = (!adSecond().isType<Const>())
                  ? adSecond().evaluateAt(varValues)
                  : adSecond();
 
   ad1 = ad1.simplify();
   ad2 = ad2.simplify();
 
-  if (ad1.isType<AD::Const>() && ad2.isType<AD::Const>()) {
+  if (ad1.isType<Const>() && ad2.isType<Const>()) {
     return AD(f(value(ad1), value(ad2)));
   }
 
@@ -44,20 +45,22 @@ AD Plus::dF1() const { return AD(1.0); }
 AD Plus::dF2() const { return AD(1.0); }
 
 AD Plus::simplifyImpl() const {
+  using Const = AD::Const;
+
   auto ad1 = adFirst().simplify();
   auto ad2 = adSecond().simplify();
 
-  if (ad1.isType<AD::Const>() && ad2.isType<AD::Const>()) {
+  if (ad1.isType<Const>() && ad2.isType<Const>()) {
     return AD(f(value(ad1), value(ad2)));
   }
 
   // Convert to Const + Expression if possible
-  if (ad2.isType<AD::Const>()) {
+  if (ad2.isType<Const>()) {
     std::swap(ad1, ad2);
   }
 
   // 0 + Expression -> -Expression
-  if (ad1.isType<AD::Const>() && Util::almostEqual(value(ad1), 0)) {
+  if (ad1.isType<Const>() && Util::almostEqual(value(ad1), 0)) {
     return ad2;
   }
 
@@ -68,7 +71,7 @@ AD Plus::simplifyImpl() const {
     auto& ad21 = ad2.reference<Times>().adFirst();
     auto& ad22 = ad2.reference<Times>().adSecond();
 
-    if (ad11.isType<AD::Const>() && ad21.isType<AD::Const>() &&
+    if (ad11.isType<Const>() && ad21.isType<Const>() &&
         (ad12.expression() == ad22.expression())) {
       auto result = (ad11 + ad21) * ad12;
       return result.simplify();
@@ -101,7 +104,7 @@ AD Minus::simplifyImpl() const {
     return AD(f(value(ad1), value(ad2)));
   }
 
-  // Convert to Const - Expression if possible
+  // Convert to AD::Const - Expression if possible
   if (ad2.isType<AD::Const>()) {
     std::swap(ad1, ad2);
   }
@@ -153,7 +156,7 @@ AD Times::simplifyImpl() const {
     return AD(f(value(ad1), value(ad2)));
   }
 
-  // Convert to Const * Expression if possible
+  // Convert to AD::Const * Expression if possible
   if (ad2.isType<AD::Const>()) {
     std::swap(ad1, ad2);
   }
@@ -169,7 +172,7 @@ AD Times::simplifyImpl() const {
   }
 
   if (ad2.isType<Times>()) {
-    // Const * (Const * Expression) -> Const * expression
+    // AD::Const * (AD::Const * Expression) -> AD::Const * expression
     auto ad2Ptr = ad2.pointer<Times>();
     if (ad1.isType<AD::Const>() && ad2Ptr->adFirst().isType<AD::Const>()) {
       auto result =
@@ -206,7 +209,7 @@ AD Divide::simplifyImpl() const {
     return AD(f(value(ad1), value(ad2)));
   }
 
-  // Expression / Const -> Const * Expression;
+  // Expression / AD::Const -> AD::Const * Expression;
   if (ad2.isType<AD::Const>()) {
     return AD(1.0 / value(ad2)) * ad1;
   }
@@ -241,7 +244,7 @@ AD Pow::simplifyImpl() const {
     return AD(f(value(ad1), value(ad2)));
   }
 
-  // Expression / Const -> Const * Expression;
+  // Expression / AD::Const -> AD::Const * Expression;
   if (ad2.isType<AD::Const>()) {
     if (Util::almostEqual(value(ad2), 1)) {
       return ad1;

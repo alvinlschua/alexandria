@@ -64,7 +64,7 @@ class UnaryMinus : public AD::Unary {
   }
 
   std::string expressionImpl() const {
-    return ad_.isType<AD::Const>() || ad_.isType<AD::Var>()
+    return ad_.isType<const AD::Const>() || ad_.isType<const AD::Var>()
                ? "-" + ad_.expression()
                : "-(" + ad_.expression() + ")";
   }

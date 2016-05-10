@@ -15,13 +15,14 @@ class AD {
  public:
   class Expression;
   class Const;
+  class Param;
   class Var;
   class Unary;
   class Binary;
 
   using VarValue = std::pair<const AD&, double>;
   using VarValues = std::vector<VarValue>;
-  using Ptr = std::unique_ptr<const Expression>;
+  using Ptr = std::unique_ptr<Expression>;
 
   // Default constructor.
   AD() {}
@@ -29,8 +30,12 @@ class AD {
   // Make constant.
   explicit AD(double value);
 
-  // Make constant.
+  // Make var.
   explicit AD(const std::string& identifier);
+
+  // Make param. Params can be treated as variables, but have an associated set
+  // of values.
+  explicit AD(const std::string& identifier, double value);
 
   // Construct from a ptr.
   explicit AD(Ptr ptr) : ptr_(std::move(ptr)) {}
@@ -65,13 +70,13 @@ class AD {
 
   // Cast this to type T.  A nullptr is return is it cannot be cast.
   template <typename T>
-  const T* pointer() const {
-    return dynamic_cast<const T*>(ptr_.get());
+  T* pointer() const {
+    return dynamic_cast<T*>(ptr_.get());
   }
 
   // Cast this to reference of type T.  This fails if isType<T> is false.
   template <typename T>
-  const T& reference() const {
+  T& reference() const {
     auto result = pointer<T>();
     if (result == nullptr) {
       throw std::logic_error(std::string("unable to cast to ") +
