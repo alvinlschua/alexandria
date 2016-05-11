@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "tensor/tensor_base.h"
 #include "tensor/addresser.h"
 #include "tensor/shape.h"
 #include "tensor/helpers.h"
@@ -22,7 +23,7 @@ namespace Tensor {
 // Some operations have restrictions on the way data is accessed. This is to
 // make sure the class is used efficiently.
 template <typename T = double>
-class Tensor : public Util::Serializable {
+class Tensor : public TensorBase<T> {
  public:
   using Data = std::vector<T>;
   using Iterator = typename Data::iterator;
@@ -34,10 +35,10 @@ class Tensor : public Util::Serializable {
     return Tensor(shape, std::move(data));
   }
 
-  // Make an of zeros.
+  // Make a tensor of zeros.
   static Tensor zeros(const Shape& shape) { return fill(shape, 0); }
 
-  // Make an of ones.
+  // Make a tensor of ones.
   static Tensor ones(const Shape& shape) { return fill(shape, 1); }
 
   // Make a random tensor. TDistribution should be a RandomNumberDistribution
@@ -121,22 +122,6 @@ class Tensor : public Util::Serializable {
     }
   }
 
-  // Return the number of elements.
-  size_t size() const { return data_.size(); }
-
-  // Return the shape.
-  const Shape& shape() const { return shape_; }
-
-  // Access an element.
-  T operator[](const Address& address) const {
-    return data_.at(addresser_.flatIndex(address));
-  }
-
-  // Access an element.
-  T& operator[](const Address& address) {
-    return data_[addresser_.flatIndex(address)];
-  }
-
   // Iterators.
   ConstIterator begin() const { return data_.cbegin(); }
   ConstIterator end() const { return data_.cend(); }
@@ -149,14 +134,33 @@ class Tensor : public Util::Serializable {
   Tensor(const Shape& shape, Data data)
       : shape_(shape), addresser_(&shape_), data_(std::move(data)) {}
 
+  // Return the number of elements.
+  size_t sizeImpl() const final { return data_.size(); }
+
+  // Return the shape.
+  const Shape& shapeImpl() const final { return shape_; }
+
+  // Access an element.
+  T atConstImpl(const Address& address) const {
+    return data_.at(addresser_.flatIndex(address));
+  }
+
+  // Access an element.
+  T& atImpl(const Address& address) {
+    return data_[addresser_.flatIndex(address)];
+  }
+
   void serializeInImpl(Util::ArchiveIn& ar, size_t /*version*/) final {
     ar % shape_ % data_;
     addresser_ = Addresser(&shape_);
   }
+
   void serializeOutImpl(Util::ArchiveOut& ar) const final {
     ar % shape_ % data_;
   }
+
   size_t serializeOutVersionImpl() const final { return 0ul; }
+
 
   Shape shape_;
   Addresser addresser_;
@@ -327,6 +331,23 @@ Tensor<T> multiply(const Tensor<T>& tensor1, const Indices& indices1,
   return result;
 }
 
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const Tensor<T>& t) {
+  out << t.shape() << "{";
+  if (t.size() > 12) {
+    out << " " << t.size() << " elements ";
+  } else {
+    auto iter = t.cbegin();
+    for (; iter != t.cend() - 1; ++iter) {
+      out << *iter << ", ";
+    }
+    out << *iter;
+  }
+  out << "}";
+
+  return out;
+}
+
 }  // Tensor
 
-#endif
+#endif  // TENSOR_TENSOR_H

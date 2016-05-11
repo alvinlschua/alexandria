@@ -16,4 +16,16 @@ size_t nElements(const Shape& shape) {
                                             shape.cbegin(), shape.cend(), 1ul,
                                             std::multiplies<size_t>());
 }
+
+std::ostream& operator<<(std::ostream& out, const Shape& s) {
+  out << "Shape(";
+  auto iter = s.cbegin();
+  for (; iter != s.cend() - 1; ++iter) {
+    out << *iter << ", ";
+  }
+  out << *iter << ")";
+
+  return out;
+}
+
 }  // namespace Tensor

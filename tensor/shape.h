@@ -10,6 +10,7 @@
 #pragma clang diagnostic pop
 
 #include "util/serializable.h"
+#include "util/util.h"
 
 namespace Tensor {
 
@@ -72,12 +73,20 @@ inline bool operator!=(const Shape& shape1, const Shape& shape2) {
 // Calculate the number of elements for the shape.
 size_t nElements(const Shape& shape);
 
+// Streams the shape.
+std::ostream& operator<<(std::ostream& out, const Shape& s);
+
 // Indices to refer to Particular dimensions of shapes or address
 using Indices = std::vector<int>;
 
 // Addresses
 using Address = std::vector<size_t>;
 
+struct AddressHash {
+  uint64_t operator()(const Address& address) const {
+    return Util::hash64(address.begin(), address.end());
+  }
+};
 
 }  // Tensor
 #endif
