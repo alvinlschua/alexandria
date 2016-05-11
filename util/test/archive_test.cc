@@ -192,3 +192,23 @@ TEST(Archive, UnorderedSet) {
 
   EXPECT_EQ(set_in, set_out);
 }
+
+TEST(Archive, UnorderedMap) {
+  using std::ostringstream;
+  using std::istringstream;
+  using Util::ArchiveOut;
+  using Util::ArchiveIn;
+
+  ostringstream sout;
+  ArchiveOut ar_out(&sout);
+  std::unordered_map<int, char> map_out({{4, 'a'}, {2, 'b'}, {3, 'c'}});
+  ar_out % map_out;
+
+  istringstream sin(sout.str());
+  ArchiveIn ar_in(&sin);
+  std::unordered_map<int, char> map_in;
+
+  ar_in % map_in;
+
+  EXPECT_EQ(map_in, map_out);
+}

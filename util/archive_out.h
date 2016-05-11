@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace Util {
 
@@ -18,6 +19,10 @@ class ArchiveOut {
   // Serialize primitives and generic classes.
   template <typename T>
   ArchiveOut& operator%(const T& value);
+
+  // Serialize std::pairs
+  template <typename TFirst, typename TSecond>
+  ArchiveOut& operator%(const std::pair<TFirst, TSecond>& value);
 
   // Serialize std::array.
   template <typename TValue, size_t n>
@@ -32,6 +37,11 @@ class ArchiveOut {
   ArchiveOut& operator%(
       const std::unordered_set<TValue, THash, TEqual>& container);
 
+  // Serialize std::unordered_map.
+  template <typename TKey, typename TValue, typename THash, typename TEqual>
+  ArchiveOut& operator%(
+      const std::unordered_map<TKey, TValue, THash, TEqual>& container);
+
   // Note: other standard containers to be added as necessary.
 
  private:
@@ -43,12 +53,13 @@ class ArchiveOut {
 };
 
 template <typename TContainer>
-ArchiveOut& serializeOutValueContainer(ArchiveOut& ar,
-                                       const TContainer& container) {
-  using Value = typename TContainer::value_type;
+ArchiveOut& serializeOutContainer(ArchiveOut& ar, const TContainer& container) {
+  using value_type = typename TContainer::value_type;
+
   ar % container.size();
   std::for_each(container.cbegin(), container.cend(),
-                [&ar](const Value& v) { ar % v; });
+                [&ar](const value_type& value) { ar % value; });
+
   return ar;
 }
 
@@ -63,20 +74,31 @@ void ArchiveOut::writePrimitive(const T& value) {
   stream_->write(reinterpret_cast<const char*>(&value), sizeof(T));
 }
 
+template <typename TFirst, typename TSecond>
+ArchiveOut& ArchiveOut::operator%(const std::pair<TFirst, TSecond>& value) {
+  return (*this) % value.first % value.second;
+}
+
 template <typename TValue, size_t n>
 ArchiveOut& ArchiveOut::operator%(const std::array<TValue, n>& container) {
-  return serializeOutValueContainer(*this, container);
+  return serializeOutContainer(*this, container);
 }
 
 template <typename TValue>
 ArchiveOut& ArchiveOut::operator%(const std::vector<TValue>& container) {
-  return serializeOutValueContainer(*this, container);
+  return serializeOutContainer(*this, container);
 }
 
 template <typename TValue, typename THash, typename TEqual>
 ArchiveOut& ArchiveOut::operator%(
     const std::unordered_set<TValue, THash, TEqual>& container) {
-  return serializeOutValueContainer(*this, container);
+  return serializeOutContainer(*this, container);
+}
+
+template <typename TKey, typename TValue, typename THash, typename TEqual>
+ArchiveOut& ArchiveOut::operator%(
+    const std::unordered_map<TKey, TValue, THash, TEqual>& container) {
+  return serializeOutContainer(*this, container);
 }
 
 template <>

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace Util {
 
@@ -19,6 +20,10 @@ class ArchiveIn {
   template <typename T>
   ArchiveIn& operator%(T& value);
 
+  // Serialize std::pair.
+  template <typename TFirst, typename TSecond>
+  ArchiveIn& operator%(std::pair<TFirst, TSecond>& container);
+
   // Serialize std::array.
   template <typename TValue, size_t size>
   ArchiveIn& operator%(std::array<TValue, size>& container);
@@ -31,6 +36,11 @@ class ArchiveIn {
   template <typename TValue, typename THash, typename TEqual>
   ArchiveIn& operator%(std::unordered_set<TValue, THash, TEqual>& container);
 
+  // Serialize std::unordered_map.
+  template <typename TKey, typename TValue, typename THash, typename TEqual>
+  ArchiveIn& operator%(
+      std::unordered_map<TKey, TValue, THash, TEqual>& container);
+
   // Note: other standard containers to be added as necessary.
 
  private:
@@ -42,11 +52,12 @@ class ArchiveIn {
 };
 
 // Convenience function to serialize value containers.
-template <typename TContainer>
-ArchiveIn& serializeInValueContainer(
-    ArchiveIn& ar, std::function<void(typename TContainer::value_type)> insert,
-    std::function<void()> clear,
-    std::function<void(size_t)> reserve = [](size_t) {}) {
+template <typename TContainer, typename TValue>
+ArchiveIn& serializeInContainer(ArchiveIn& ar,
+                                std::function<void(TValue)> insert,
+                                std::function<void()> clear,
+                                std::function<void(size_t)> reserve =
+                                    [](size_t) {}) {
   auto size = 0ul;
   ar % size;
 
@@ -54,9 +65,9 @@ ArchiveIn& serializeInValueContainer(
   reserve(size);
 
   for (auto index = 0ul; index < size; ++index) {
-    typename TContainer::value_type v;
-    ar % v;
-    insert(v);
+    TValue value;
+    ar % value;
+    insert(value);
   }
 
   return ar;
@@ -75,18 +86,31 @@ void ArchiveIn::readPrimitive(T& value) {
   value = *reinterpret_cast<T*>(temp);
 }
 
+template <typename TFirst, typename TSecond>
+ArchiveIn& ArchiveIn::operator%(std::pair<TFirst, TSecond>& value) {
+  return (*this) % value.first % value.second;
+}
+
 template <typename TValue, size_t size>
 ArchiveIn& ArchiveIn::operator%(std::array<TValue, size>& container) {
+  using ContainerType = std::array<TValue, size>;
+  using ValueType = typename ContainerType::value_type;
+
   auto index = 0ul;
-  return serializeInValueContainer<std::array<TValue, size>>(
-      *this, [&container, &index](TValue value) { container[index++] = value; },
+  return serializeInContainer<ContainerType, ValueType>(
+      *this,
+      [&container, &index](const TValue& value) { container[index++] = value; },
       []() {});
 }
 
 template <typename TValue>
 ArchiveIn& ArchiveIn::operator%(std::vector<TValue>& container) {
-  return serializeInValueContainer<std::vector<TValue>>(
-      *this, [&container](TValue value) { container.emplace_back(value); },
+  using ContainerType = std::vector<TValue>;
+  using ValueType = typename ContainerType::value_type;
+
+  return serializeInContainer<ContainerType, ValueType>(
+      *this,
+      [&container](const TValue& value) { container.emplace_back(value); },
       [&container]() { container.clear(); },
       [&container](size_t size) { container.reserve(size); });
 }
@@ -94,9 +118,25 @@ ArchiveIn& ArchiveIn::operator%(std::vector<TValue>& container) {
 template <typename TValue, typename THash, typename TEqual>
 ArchiveIn& ArchiveIn::operator%(
     std::unordered_set<TValue, THash, TEqual>& container) {
-  return serializeInValueContainer<std::unordered_set<TValue, THash, TEqual>>(
-      *this, [&container](TValue value) { container.emplace(value); },
-      [&container](void) { container.clear(); });
+  using ContainerType = std::unordered_set<TValue, THash, TEqual>;
+  using ValueType = typename ContainerType::value_type;
+
+  return serializeInContainer<ContainerType, ValueType>(
+      *this, [&container](const ValueType& value) { container.emplace(value); },
+      [&container](void) { container.clear(); },
+      [&container](size_t size) { container.reserve(size); });
+}
+
+template <typename TKey, typename TValue, typename THash, typename TEqual>
+ArchiveIn& ArchiveIn::operator%(
+    std::unordered_map<TKey, TValue, THash, TEqual>& container) {
+  using ContainerType = std::unordered_map<TKey, TValue, THash, TEqual>;
+  using ValueType = std::pair<TKey, TValue>;
+
+  return serializeInContainer<ContainerType, ValueType>(
+      *this, [&container](const ValueType& value) { container.emplace(value); },
+      [&container](void) { container.clear(); },
+      [&container](size_t size) { container.reserve(size); });
 }
 
 template <>
