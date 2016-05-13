@@ -1,12 +1,13 @@
 #ifndef UTIL_ARCHIVE_IN_H_
 #define UTIL_ARCHIVE_IN_H_
 
-#include <iostream>
 #include <array>
+#include <iostream>
+#include <map>
 #include <string>
-#include <vector>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace Util {
 
@@ -40,6 +41,10 @@ class ArchiveIn {
   template <typename TKey, typename TValue, typename THash, typename TEqual>
   ArchiveIn& operator%(
       std::unordered_map<TKey, TValue, THash, TEqual>& container);
+
+  // Serialize std::unordered_map.
+  template <typename TKey, typename TValue, typename TCompare>
+  ArchiveIn& operator%(std::map<TKey, TValue, TCompare>& container);
 
   // Note: other standard containers to be added as necessary.
 
@@ -137,6 +142,17 @@ ArchiveIn& ArchiveIn::operator%(
       *this, [&container](const ValueType& value) { container.emplace(value); },
       [&container](void) { container.clear(); },
       [&container](size_t size) { container.reserve(size); });
+}
+
+template <typename TKey, typename TValue, typename TCompare>
+ArchiveIn& ArchiveIn::operator%(
+    std::map<TKey, TValue, TCompare>& container) {
+  using ContainerType = std::map<TKey, TValue, TCompare>;
+  using ValueType = std::pair<TKey, TValue>;
+
+  return serializeInContainer<ContainerType, ValueType>(
+      *this, [&container](const ValueType& value) { container.emplace(value); },
+      [&container](void) { container.clear(); });
 }
 
 template <>

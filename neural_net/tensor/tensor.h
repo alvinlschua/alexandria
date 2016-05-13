@@ -1,6 +1,7 @@
 #ifndef NEURAL_NET_TENSOR_H
 #define NEURAL_NET_TENSOR_H
 
+#include <iostream>
 #include <vector>
 
 #include "neural_net/tensor/accesser.h"
@@ -27,8 +28,6 @@ class Tensor : public Util::Serializable {
   class Base;
   class Dense;
   class Sparse;
-  class Eye;
-  class Zeros;
 
   using Ptr = std::unique_ptr<Base>;
 
@@ -116,15 +115,24 @@ class Tensor : public Util::Serializable {
 
 template <typename T>
 bool operator==(const Tensor<T>& t1, const Tensor<T>& t2) {
+  auto result = true;
   if (t1.template isType<typename Tensor<T>::Dense>() &&
       t2.template isType<typename Tensor<T>::Dense>()) {
     auto x = t1.template reference<typename Tensor<T>::Dense>();
     auto y = t2.template reference<typename Tensor<T>::Dense>();
-    return x.shape() == y.shape() &&
-           std::equal(x.cbegin(), x.cend(), y.cbegin());
+    result =
+        x.shape() == y.shape() && std::equal(x.cbegin(), x.cend(), y.cbegin());
   } else {
-    throw Util::unimplemented_exception("unimplemented");
+    if (t1.shape() != t2.shape()) return false;
+    auto accesser = Accesser(&t1.shape());
+    for (const auto& address : accesser) {
+      if (!Util::almostEqual(t1[address], t2[address])) {
+        result = false;
+        break;
+      }
+    }
   }
+  return result;
 }
 
 template <typename T>
@@ -136,11 +144,8 @@ template <typename T>
 Tensor<T> Tensor<T>::generate(const Shape& shape,
                               std::function<T(Address)> fn) {
   Dense result(shape);
-  const auto size = nElements(shape);
-  Address address(shape.nDimensions(), 0);
   Accesser accesser(&shape);
-  for (auto index = 0ul; index < size;
-       ++index, address = accesser.increment(std::move(address))) {
+  for (const auto& address : accesser) {
     result[address] = fn(address);
   }
   return Tensor(result);
@@ -214,15 +219,11 @@ Tensor<T> Tensor<T>::outerProductEye(const Shape& shape) {
 
   Sparse result(resultShape);
   Accesser accesser(&shape);
-  Address address(shape.nDimensions(), 0);
 
-  auto size = nElements(shape);
-  for (auto index = 0ul; index < size;
-       ++index, address = accesser.increment(std::move(address))) {
+  for (const auto& address : accesser) {
     auto resultAddress = address;
     resultAddress.resize(2 * shape.nDimensions());
-
-    std::copy(resultAddress.cbegin(), resultAddress.cend(),
+    std::copy(address.cbegin(), address.cend(),
               resultAddress.begin() + static_cast<int>(shape.nDimensions()));
 
     result[resultAddress] = 1;
@@ -425,10 +426,10 @@ Tensor<T> multiply(const Tensor<T>& t1, const Indices& indices1,
 
   tie(result_shape, common_shape) =
       multiplyShapes(t1.shape(), indices1, t2.shape(), indices2);
-  auto result_addresser = Accesser(&result_shape);
-  auto common_addresser = Accesser(&common_shape);
+  auto result_accesser = Accesser(&result_shape);
+  auto common_accesser = Accesser(&common_shape);
 
-  auto result_address = Address(result_shape.nDimensions(), 0);
+  auto result_address_iter = result_accesser.cbegin();
 
   auto result = typename Tensor<T>::Dense(
       result_shape, std::vector<T>(nElements(result_shape), 0));
@@ -436,18 +437,16 @@ Tensor<T> multiply(const Tensor<T>& t1, const Indices& indices1,
     Address address1(t1.shape().nDimensions());
     Address address2(t2.shape().nDimensions());
 
-    gather(indices1.cbegin(), indices1.cend(), result_address.cbegin(),
+    gather(indices1.cbegin(), indices1.cend(), result_address_iter->cbegin(),
            address1.begin(),
            [](int index) { return index >= 0 ? index : Util::invalid_index; });
 
-    gather(indices2.cbegin(), indices2.cend(), result_address.cbegin(),
+    gather(indices2.cbegin(), indices2.cend(), result_address_iter->cbegin(),
            address2.begin(),
            [](int index) { return index >= 0 ? index : Util::invalid_index; });
 
     if (common_shape.nDimensions() > 0) {
-      auto common_address = Address(common_shape.nDimensions(), 0);
-      const auto size = nElements(common_shape);
-      for (auto index = 0ul; index < size; ++index) {
+      for (const auto& common_address : common_accesser) {
         gather(indices1.cbegin(), indices1.cend(), common_address.cbegin(),
                address1.begin(), [](int idx) {
                  return idx < 0 ? -idx - 1 : Util::invalid_index;
@@ -459,14 +458,32 @@ Tensor<T> multiply(const Tensor<T>& t1, const Indices& indices1,
                });
 
         element += t1[address1] * t2[address2];
-        common_address = common_addresser.increment(move(common_address));
       }
     } else {
       element = t1[address1] * t2[address2];
     }
-    result_address = result_addresser.increment(move(result_address));
+    ++result_address_iter;
   }
   return Tensor<T>(result);
+}
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const Tensor<T>& t) {
+  const auto& shape = t.shape();
+  const auto size = nElements(shape);
+  const auto accesser = Accesser(&shape);
+
+  out << shape << "{";
+  if (size > 12) {
+    out << " " << size << " elements ";
+  } else {
+    for (auto iter = accesser.begin(); iter != accesser.end(); ++iter) {
+      out << t[*iter];
+      out << (iter == accesser.end() ? "}" : " ");
+    }
+  }
+
+  return out;
 }
 
 }  // Tensor

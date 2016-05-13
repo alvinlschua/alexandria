@@ -65,32 +65,29 @@ TEST(Accesser, increment) {
   Shape shape({3, 1, 2});
   Accesser accesser(&shape);
 
-  Address address(3, 0);
+  auto iter = accesser.begin();
+  EXPECT_EQ(iter, accesser.begin());
+  EXPECT_EQ(iter, accesser.cbegin());
+  EXPECT_EQ(*iter, std::vector<size_t>({0, 0, 0}));
 
-  EXPECT_EQ(address, std::vector<size_t>({0, 0, 0}));
+  ++iter;
+  EXPECT_EQ(*iter, std::vector<size_t>({0, 0, 1}));
 
-  address = accesser.increment(std::move(address));
-  EXPECT_EQ(address, std::vector<size_t>({0, 0, 1}));
+  iter++;
+  EXPECT_EQ(*iter, std::vector<size_t>({1, 0, 0}));
 
-  address = accesser.increment(std::move(address));
-  EXPECT_EQ(address, std::vector<size_t>({1, 0, 0}));
+  ++iter;
+  EXPECT_EQ(*iter, std::vector<size_t>({1, 0, 1}));
 
-  address = accesser.increment(std::move(address));
-  EXPECT_EQ(address, std::vector<size_t>({1, 0, 1}));
+  iter++;
+  EXPECT_EQ(*iter, std::vector<size_t>({2, 0, 0}));
 
-  address = accesser.increment(std::move(address));
-  EXPECT_EQ(address, std::vector<size_t>({2, 0, 0}));
+  iter++;
+  EXPECT_EQ(*iter, std::vector<size_t>({2, 0, 1}));
 
-  address = accesser.increment(std::move(address));
-  EXPECT_EQ(address, std::vector<size_t>({2, 0, 1}));
-
-  address = Address(3, 0);
-  auto step = 2ul;
-  address = accesser.increment(std::move(address), step);
-  EXPECT_EQ(address, std::vector<size_t>({1, 0, 0}));
-
-  address = accesser.increment(std::move(address), step);
-  EXPECT_EQ(address, std::vector<size_t>({2, 0, 0}));
+  ++iter;
+  EXPECT_EQ(iter, accesser.end());
+  EXPECT_EQ(iter, accesser.cend());
 }
 
 int main(int argc, char** argv) {

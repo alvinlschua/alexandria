@@ -14,6 +14,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     message(STATUS "Cxx flags ${CMAKE_CXX_FLAGS}")
 endif()
 
@@ -43,7 +44,7 @@ endif()
 
 include_directories(${GLOG_INCLUDE_DIRS} ${GTEST_INCLUDE_DIRS} ${X11_INCLUDE_DIR} "../../")
 
-add_library(tensor shape.cc accesser.cc helpers.cc)
+add_library(tensor shape.cc accesser.cc address_iterator.cc helpers.cc)
 add_library(util ../../util/archive_in.cc ../../util/archive_out.cc ../../util/rng.cc)
 
 add_executable(shape_test test/shape_test.cc)

@@ -1,8 +1,8 @@
 #ifndef NEURAL_NET_TENSOR_SHAPE_H_
 #define NEURAL_NET_TENSOR_SHAPE_H_
 
+#include <iostream>
 #include <vector>
-#include <initializer_list>
 
 #include "util/serializable.h"
 #include "util/util.h"
@@ -88,5 +88,12 @@ struct AddressHash {
   }
 };
 
-}  // NeuralNet 
+struct AddressCompare {
+  bool operator()(const Address& address1, const Address& address2) const {
+    return lexicographical_compare(address1.begin(), address1.end(),
+                                   address2.begin(), address2.end());
+  }
+};
+
+}  // NeuralNet
 #endif

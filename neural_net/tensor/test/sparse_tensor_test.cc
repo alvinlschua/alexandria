@@ -36,15 +36,33 @@ TEST(Tensor, Constructors) {
   auto t2 = Tensor<double>::outerProductEye(Shape({3}));
   EXPECT_EQ(t2.size(), 3);
 
-  EXPECT_DOUBLE_EQ(t2.at({0,0}), 1.0);
-  EXPECT_DOUBLE_EQ(t2.at({0,1}), 0.0);
-  EXPECT_DOUBLE_EQ(t2.at({1,1}), 1.0);
-  EXPECT_DOUBLE_EQ(t2.at({2,2}), 1.0);
+  EXPECT_DOUBLE_EQ(t2.at({0, 0}), 1.0);
+  EXPECT_DOUBLE_EQ(t2.at({0, 1}), 0.0);
+  EXPECT_DOUBLE_EQ(t2.at({1, 1}), 1.0);
+  EXPECT_DOUBLE_EQ(t2.at({2, 2}), 1.0);
   EXPECT_EQ(t2.size(), 3);
 
   auto t3 = Tensor<double>::outerProductZeros(Shape({3}));
   EXPECT_EQ(t3.size(), 0);
-  
+
+  auto t4 = Tensor<double>::outerProductEye(Shape({3}));
+  auto t5 = Tensor<double>::zeros(Shape({3, 3}));
+
+  t5[{0, 0}] = 1;
+  t5[{1, 1}] = 1;
+  EXPECT_NE(t4, t5);
+
+  t5[{2, 2}] = 1;
+  EXPECT_EQ(t4, t5);
+
+  auto t6 = Tensor<double>::outerProductEye(Shape({3}));
+  EXPECT_EQ(t4, t6);
+
+  auto t7 = Tensor<double>::outerProductZeros(Shape({3}));
+  EXPECT_NE(t4, t7);
+
+  auto t8 = Tensor<double>::outerProductEye(Shape({3, 1}));
+  EXPECT_NE(t4, t8);
 }
 
 int main(int argc, char** argv) {

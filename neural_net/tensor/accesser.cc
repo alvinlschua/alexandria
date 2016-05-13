@@ -26,26 +26,4 @@ Address Accesser::address(size_t flat_index) const {
   return result;
 }
 
-Address Accesser::increment(Address address, size_t amount) {
-  CHECK(amount >= 1) << "increment amount should be >= 1";
-  CHECK(address.size() == shape_->nDimensions())
-      << "address and shape sizes inconsistent";
-
-  address.back() += amount;
-
-  auto carry = 0ul;
-  auto iter = address.rbegin();
-  auto dim_iter = shape_->crbegin();
-
-  for (; iter != address.rend(); ++iter, ++dim_iter) {
-    auto value = *iter;
-    const auto dim = *dim_iter;
-    value += carry;
-    carry = value / dim;
-    *iter = value % dim;
-    if (carry == 0) break;
-  }
-
-  return address;
-}
 }  // namespace Tensor

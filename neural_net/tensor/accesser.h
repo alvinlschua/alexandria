@@ -4,8 +4,8 @@
 #include <numeric>
 #include <vector>
 
+#include "neural_net/tensor/address_iterator.h"
 #include "neural_net/tensor/shape.h"
-#include "util/serializable.h"
 
 namespace NeuralNet {
 
@@ -27,13 +27,17 @@ class Accesser {
   // Calculate the address from the flat index.  This value is cached.
   Address address(size_t flat_index) const;
 
-  // Increments the given address.  Note that address can be moved in.
-  //
-  // This calculation should be faster than address as it terminates early once
-  // carry = 0.
-  Address increment(Address address, size_t amount = 1ul);
+  // Forward iterator for addresses of the accessor shape.
+  AddressIterator cbegin() const { return AddressIterator(*this, 0); }
+  AddressIterator cend() const {
+    return AddressIterator(*this, nElements(*shape_));
+  }
+  AddressIterator begin() const { return cbegin(); }
+  AddressIterator end() const { return cend(); }
 
  private:
+  friend class AddressIterator;
+
   Strides strides_;
   const Shape* shape_;
 };

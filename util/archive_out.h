@@ -1,12 +1,13 @@
 #ifndef UTIL_ARCHIVE_OUT_H_
 #define UTIL_ARCHIVE_OUT_H_
 
-#include <iostream>
 #include <array>
+#include <iostream>
+#include <map>
 #include <string>
-#include <vector>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 namespace Util {
 
@@ -41,6 +42,10 @@ class ArchiveOut {
   template <typename TKey, typename TValue, typename THash, typename TEqual>
   ArchiveOut& operator%(
       const std::unordered_map<TKey, TValue, THash, TEqual>& container);
+
+  // Serialize std::map.
+  template <typename TKey, typename TValue, typename TCompare>
+  ArchiveOut& operator%(const std::map<TKey, TValue, TCompare>& container);
 
   // Note: other standard containers to be added as necessary.
 
@@ -98,6 +103,12 @@ ArchiveOut& ArchiveOut::operator%(
 template <typename TKey, typename TValue, typename THash, typename TEqual>
 ArchiveOut& ArchiveOut::operator%(
     const std::unordered_map<TKey, TValue, THash, TEqual>& container) {
+  return serializeOutContainer(*this, container);
+}
+
+template <typename TKey, typename TValue, typename TCompare>
+ArchiveOut& ArchiveOut::operator%(
+    const std::map<TKey, TValue, TCompare>& container) {
   return serializeOutContainer(*this, container);
 }
 

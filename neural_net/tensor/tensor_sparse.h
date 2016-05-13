@@ -64,8 +64,10 @@ class Tensor<T>::Sparse : public Base {
   // Access an element.
   T& atImpl(const Address& address) {
     auto iter = data_.find(address);
-    return iter != data_.end() ? data_[address]
-                               : (data_[address] = defaultValue());
+    if (iter == data_.end()) {
+      data_[address] = defaultValue();
+    }
+    return data_[address];
   }
 
   // Helper to remove zeros.
@@ -79,11 +81,11 @@ class Tensor<T>::Sparse : public Base {
   }
 
   void serializeInImpl(Util::ArchiveIn& ar, size_t /*version*/) final {
-    ar % shape_ % data_;
+    ar % shape_ % data_ % defaultValue_;
   }
 
   void serializeOutImpl(Util::ArchiveOut& ar) const final {
-    ar % shape_ % data_;
+    ar % shape_ % data_ % defaultValue_;
   }
   size_t serializeOutVersionImpl() const final { return 0ul; }
 

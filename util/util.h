@@ -116,6 +116,17 @@ inline void scatter(IndexIterator index_begin, IndexIterator index_end,
                 });
 }
 
+class unimplemented_exception : public std::exception {
+ public:
+  unimplemented_exception(const std::string& msg) : msg_(msg) {}
+  unimplemented_exception(const unimplemented_exception&) = default;
+  virtual ~unimplemented_exception() {}
+  const char* what() const noexcept final { return msg_.c_str(); }
+
+ private:
+  std::string msg_;
+};
+
 }  // namespace Util
 
 #endif  // UTIL_UTIL_H_
