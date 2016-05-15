@@ -1,16 +1,16 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_CONST_H_
-#define AUTOMATIC_DIFFERENTIATION_AD_CONST_H_
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_CONST_TENSOR_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_CONST_TENSOR_H_
 
 #include <string>
 
-#include "automatic_differentiation/ad_expression.h"
+#include "automatic_differentiation/ad_expression_tensor.h"
 
 namespace AutomaticDifferentiation {
-
 template <typename T>
 class AD<T>::Const : public Expression {
  public:
   using VarValues = AD::VarValues;
+  using Shape = typename AD<T>::Shape;
 
   static std::unique_ptr<Expression> make(const T& value) {
     return Const(value).clone();
@@ -25,13 +25,19 @@ class AD<T>::Const : public Expression {
  private:
   explicit Const(const T& value) : value_(value) {}
 
-  AD<T> differentiateImpl(const AD<T>& /*var*/) const final { return AD<T>(0); }
+  AD<T> differentiateImpl(const AD<T>& var) const final {
+    using NeuralNet::combineShapes;
+    return AD<T>(
+        T::sparse(combineShapes(this->shape(), var.reference<Var>().shape())));
+  }
 
   AD<T> simplifyImpl() const final { return AD<T>(value()); }
 
   AD<T> evaluateAtImpl(const VarValues& /*varValues*/) const final {
     return AD<T>(value());
   }
+
+  const Shape& shapeImpl() const { return value_.shape(); }
 
   std::string expressionImpl() const final;
 
@@ -51,4 +57,4 @@ std::string AD<T>::Const::expressionImpl() const {
 
 }  // namespace AutomaticDifferentiation
 
-#endif  // AUTOMATIC_DIFFERENTIATION_AD_CONST_H_
+#endif  // AUTOMATIC_DIFFERENTIATION_AD_CONST_TENSOR_H_

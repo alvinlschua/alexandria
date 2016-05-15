@@ -1,10 +1,10 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H_
-#define AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H_
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_TENSOR_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_TENSOR_H_
 
 #include <memory>
 #include <string>
 
-#include "automatic_differentiation/ad.h"
+#include "automatic_differentiation/ad_tensor.h"
 #include "util/clonable.h"
 
 namespace AutomaticDifferentiation {
@@ -40,6 +40,8 @@ class AD<T>::Expression : public Util::Clonable<AD<T>::Expression> {
   // Simplify the (sub) expression.
   AD<T> simplify() const { return simplifyImpl(); }
 
+  // Shape of the result.
+  const Shape& shape() const { return shapeImpl(); }
 
   // Get the expression as a string.
   std::string expression() const { return expressionImpl(); }
@@ -48,9 +50,10 @@ class AD<T>::Expression : public Util::Clonable<AD<T>::Expression> {
   virtual AD<T> differentiateImpl(const AD<T>& var) const = 0;
   virtual AD<T> evaluateAtImpl(const VarValues& varValues) const = 0;
   virtual AD<T> simplifyImpl() const = 0;
+  virtual const Shape& shapeImpl() const = 0;
   virtual std::string expressionImpl() const = 0;
 };
 
 }  // namespace AutomaticDifferentiation
 
-#endif  //  AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H_
+#endif  //  AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_TENSOR_H_

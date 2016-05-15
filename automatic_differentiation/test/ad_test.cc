@@ -23,35 +23,35 @@ TEST(AD, Basic) {
   auto y = AD("y");
   auto z = y;
 
-  EXPECT_EQ(c.expression(), "5.000000");
+  EXPECT_EQ(c.expression(), "5");
   EXPECT_TRUE(c.isType<AD::Const>());
   EXPECT_FALSE(c.isType<AD::Var>());
-  EXPECT_EQ(c.evaluateAt({x = 2}).expression(), "5.000000");
-  EXPECT_EQ(c.differentiate(x).expression(), "0.000000");
+  EXPECT_EQ(c.evaluateAt({x = 2}).expression(), "5");
+  EXPECT_EQ(c.differentiate(x).expression(), "0");
   EXPECT_TRUE(c.differentiate(x).isType<AD::Const>());
   EXPECT_EQ(value(c), 5);
 
   EXPECT_EQ(x.expression(), "x");
   EXPECT_TRUE(x.isType<AD::Var>());
   EXPECT_FALSE(x.isType<AD::Const>());
-  EXPECT_EQ(x.evaluateAt({x = 2}).expression(), "2.000000");
-  EXPECT_EQ(x.differentiate(x).expression(), "1.000000");
-  EXPECT_EQ(x.differentiate(y).expression(), "0.000000");
+  EXPECT_EQ(x.evaluateAt({x = 2}).expression(), "2");
+  EXPECT_EQ(x.differentiate(x).expression(), "1");
+  EXPECT_EQ(x.differentiate(y).expression(), "0");
   EXPECT_EQ(identifier(x), "x");
 
   EXPECT_EQ(y.expression(), "y");
   EXPECT_TRUE(y.isType<AD::Var>());
   EXPECT_FALSE(y.isType<AD::Const>());
   EXPECT_EQ(y.evaluateAt({x = 2}).expression(), "y");
-  EXPECT_EQ(y.differentiate(x).expression(), "0.000000");
-  EXPECT_EQ(y.differentiate(y).expression(), "1.000000");
+  EXPECT_EQ(y.differentiate(x).expression(), "0");
+  EXPECT_EQ(y.differentiate(y).expression(), "1");
 
   EXPECT_EQ(z.expression(), "y");
   EXPECT_TRUE(z.isType<AD::Var>());
   EXPECT_FALSE(z.isType<AD::Const>());
   EXPECT_EQ(z.evaluateAt({x = 2}).expression(), "y");
-  EXPECT_EQ(z.differentiate(x).expression(), "0.000000");
-  EXPECT_EQ(z.differentiate(y).expression(), "1.000000");
+  EXPECT_EQ(z.differentiate(x).expression(), "0");
+  EXPECT_EQ(z.differentiate(y).expression(), "1");
 }
 
 TEST(AD, ConstAndVar) {
@@ -83,8 +83,8 @@ TEST(AD, Exceptions) {
 
   EXPECT_THROW(value(x), std::logic_error);
   EXPECT_THROW(identifier(c), std::logic_error);
-  // EXPECT_THROW(value(x + y), std::logic_error);
-  // EXPECT_THROW(identifier(x + y), std::logic_error);
+  EXPECT_THROW(value(x + y), std::logic_error);
+  EXPECT_THROW(identifier(x + y), std::logic_error);
 
   EXPECT_NO_THROW(value(c));
   EXPECT_NO_THROW(identifier(x));
@@ -99,7 +99,7 @@ TEST(AD, Op) {
   EXPECT_EQ(value(D(x + y, x)), 1);
   EXPECT_EQ(value(D(x + y, y)), 1);
   EXPECT_EQ(value(D(x + y, z)), 0);
-  EXPECT_EQ((x + y).evaluateAt({x = 3}).expression(), "(3.000000 + y)");
+  EXPECT_EQ((x + y).evaluateAt({x = 3}).expression(), "(3 + y)");
 
   EXPECT_EQ(value(D(5.0 + y, y)), 1);
   EXPECT_EQ(value(D(y + 5.0, y)), 1);
@@ -133,9 +133,9 @@ TEST(AD, Op) {
 
   EXPECT_EQ(value(D(exp(-x * x), x).evaluateAt({x = 1})), -2.0 * exp(-1.0));
   EXPECT_EQ(value(D(log(x), x).evaluateAt({x = 1})), 1.0);
-  EXPECT_EQ(D(pow(x, 2.0), x).expression(), "2.000000 * x");
+  EXPECT_EQ(D(pow(x, 2.0), x).expression(), "2 * x");
   EXPECT_EQ(D(0.5 * pow(x, 2.0), x).expression(), "x");
-  EXPECT_EQ(D(pow(x, 1.0), x).expression(), "1.000000");
+  EXPECT_EQ(D(pow(x, 1.0), x).expression(), "1");
   EXPECT_EQ(value(D(pow(5.0, x), x).evaluateAt({x = 1})), 5.0 * log(5.0));
   EXPECT_EQ(value(D(pow(x, 2.0), x).evaluateAt({x = 1})), 2.0);
 

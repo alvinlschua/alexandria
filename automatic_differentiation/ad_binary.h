@@ -308,17 +308,17 @@ AD<T> Minus<T>::simplifyImpl() const {
     return AD<T>(f(value(term1), value(term2)));
   }
 
-  // Convert to AD<T>::Const - Expression if possible
-  if (term2.template isType<Const>()) {
-    std::swap(term1, term2);
-  }
-
   // 0 - Expression -> -Expression
   if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
     return -term2;
   }
 
-  // (c1 * Expression) + (c2 * Expression) = (c1 + c2) * Expression
+  // Expression - 0 -> Expression
+  if (term2.template isType<Const>() && Util::almostEqual(value(term2), 0)) {
+    return term1;
+  }
+
+  // (c1 * Expression) - (c2 * Expression) = (c1 + c2) * Expression
   if (term1.template isType<Times>() && term2.template isType<Times>()) {
     auto& term11 = term1.template reference<Times>().term1();
     auto& term12 = term1.template reference<Times>().term2();
@@ -327,7 +327,7 @@ AD<T> Minus<T>::simplifyImpl() const {
 
     if (term11.template isType<Const>() && term21.template isType<Const>() &&
         (term12.expression() == term22.expression())) {
-      auto result = (term11 + term21) * term12;
+      auto result = (term11 - term21) * term12;
       return result.simplify();
     }
   }

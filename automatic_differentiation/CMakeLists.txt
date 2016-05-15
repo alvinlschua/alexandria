@@ -46,6 +46,9 @@ if(NOT X11_FOUND)
     message(STATUS "x11 not found")
 endif()
 
+add_library(tensor ../neural_net/tensor/shape.cc ../neural_net/tensor/accesser.cc ../neural_net/tensor/helpers.cc ../neural_net/tensor/address_iterator.cc)
+add_library(util ../util/archive_in.cc ../util/archive_out.cc ../util/rng.cc)
+
 include_directories(${GLOG_INCLUDE_DIRS} ${GTEST_INCLUDE_DIRS} ${GFLAGS_INCLUDE_DIRS} ${X11_INCLUDE_DIR} "../")
 
 add_executable(ad_test test/ad_test.cc)
@@ -53,5 +56,13 @@ target_link_libraries(ad_test ${GLOG_LIBRARIES})
 target_link_libraries(ad_test ${GTEST_LIBRARIES})
 target_link_libraries(ad_test ${GFLAGS_LIBRARIES})
 
+add_executable(ad_tensor_test test/ad_tensor_test.cc)
+target_link_libraries(ad_tensor_test util)
+target_link_libraries(ad_tensor_test tensor)
+target_link_libraries(ad_tensor_test ${GLOG_LIBRARIES})
+target_link_libraries(ad_tensor_test ${GTEST_LIBRARIES})
+target_link_libraries(ad_tensor_test ${GFLAGS_LIBRARIES})
+
 enable_testing()
 add_test(ad ad_test)
+add_test(ad_tensor ad_tensor_test)

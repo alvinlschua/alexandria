@@ -1,5 +1,5 @@
-#ifndef AUTOMATIC_DIFFERENTIATION_AD_H_
-#define AUTOMATIC_DIFFERENTIATION_AD_H_
+#ifndef AUTOMATIC_DIFFERENTIATION_AD_TENSOR_H_
+#define AUTOMATIC_DIFFERENTIATION_AD_TENSOR_H_
 
 #include <vector>
 #include <string>
@@ -7,7 +7,11 @@
 #include <utility>
 
 #include "glog/logging.h"
+#include "neural_net/tensor/tensor.h"
+#include "neural_net/tensor/tensor_sparse.h"
+#include "neural_net/tensor/tensor_dense.h"
 
+// Use this in place of ad when differentiating tensors.
 namespace AutomaticDifferentiation {
 
 // A wrapper class that implements a simple for of type erasure.
@@ -16,6 +20,7 @@ class AD {
  public:
   using VarValue = std::pair<AD<T>, T>;
   using VarValues = std::vector<VarValue>;
+  using Shape = NeuralNet::Shape;
 
   class Expression;
   class Const;
@@ -33,17 +38,17 @@ class AD {
   explicit AD(const T& value);
 
   // Make var.
-  explicit AD(const std::string& identifier);
+  explicit AD(const std::string& identifier, const Shape& shape);
 
   // Make param. Params can be treated as variables, but have an associated set
   // of values.
   explicit AD(const std::string& identifier, const T& value);
 
-  // Copy constructor.
-  AD(const AD& ad) : ptr_(ad.ptr_->clone()) {}
-
   // Construct from a ptr.
   explicit AD(Ptr ptr) : ptr_(std::move(ptr)) {}
+
+  // Copy constructor.
+  AD(const AD& ad);
 
   // Copy assignment.
   AD& operator=(const AD& ad);
@@ -62,6 +67,9 @@ class AD {
 
   // Simplify the expression.
   AD simplify() const { return ptr_->simplify(); }
+
+  // Shape of the result;
+  const Shape& shape() const { return ptr_->shape(); }
 
   // Get the expression as a string.
   std::string expression() const { return ptr_->expression(); }
@@ -98,8 +106,8 @@ AD<T>::AD(const T& value)
     : ptr_(Const::make(value)) {}
 
 template <typename T>
-AD<T>::AD(const std::string& identifier)
-    : ptr_(Var::make(identifier)) {
+AD<T>::AD(const std::string& identifier, const Shape& shape)
+    : ptr_(Var::make(identifier, shape)) {
   if (identifier.size() == 0)
     throw std::invalid_argument("identifier should be specified");
 
@@ -123,6 +131,11 @@ AD<T>::AD(const std::string& identifier, const T& value)
   std::locale loc;
   if (!std::isalpha(identifier[0], loc))
     throw std::invalid_argument("identifier should start with a letter");
+}
+
+template <typename T>
+AD<T>::AD(const AD& ad) {
+  ptr_ = std::move(ad.ptr_->clone());
 }
 
 template <typename T>
@@ -194,17 +207,6 @@ AD<T> D(const AD<T>& expr, const std::vector<AD<T>>& vars) {
   return result;
 }
 
-// Grad operator.
-template <typename T>
-ADVector<T> grad(const AD<T>& expr, const std::vector<AD<T>>& vars) {
-  ADVector<T> result;
-  result.reserve(vars.size());
-  for (const auto& var : vars) {
-    result.emplace_back(D(expr, var));
-  }
-  return result;
-}
-
 }  // namespace AutomaticDifferentiation
 
-#endif  // AUTOMATIC_DIFFERENTIATION_AD_H_
+#endif  // AUTOMATIC_DIFFERENTIATION_AD_TENSOR_H_
