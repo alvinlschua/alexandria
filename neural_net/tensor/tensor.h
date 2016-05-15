@@ -31,6 +31,9 @@ class Tensor : public Util::Serializable {
 
   using Ptr = std::unique_ptr<Base>;
   using ValueType = T;
+  using Data1D = std::vector<T>;
+  using Data2D = std::vector<std::vector<T>>;
+  using Data3D = std::vector<std::vector<std::vector<T>>>;
 
   virtual ~Tensor() {}
 
@@ -45,10 +48,10 @@ class Tensor : public Util::Serializable {
   explicit Tensor(const Dense& tensor) : ptr_(tensor.clone()) {}
   explicit Tensor(const Sparse& tensor) : ptr_(tensor.clone()) {}
 
-  explicit Tensor(const std::vector<T>& data)
+  explicit Tensor(const Data1D& data)
       : ptr_(Dense(Shape({data.size()}), data).clone()) {}
-  explicit Tensor(const std::vector<std::vector<T>>& data);
-  explicit Tensor(const std::vector<std::vector<std::vector<T>>>& data);
+  explicit Tensor(const Data2D& data);
+  explicit Tensor(const Data3D& data);
 
   static Tensor<T> fill(const Shape& shape, T value);
   static Tensor zeros(const Shape& shape);

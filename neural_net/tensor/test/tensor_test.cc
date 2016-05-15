@@ -56,6 +56,11 @@ TEST(Tensor, Constructors) {
   EXPECT_DOUBLE_EQ((t6[{1, 0}]), 1.0);
   EXPECT_DOUBLE_EQ((t6[{1, 1}]), 2.0);
   EXPECT_DOUBLE_EQ((t6[{1, 2}]), 3.0);
+
+  Tensor<double> t7(Tensor<double>::Data2D({{1.0, 2.0, 3.0}}));
+  EXPECT_DOUBLE_EQ((t7[{0, 0}]), 1.0);
+  EXPECT_DOUBLE_EQ((t7[{0, 1}]), 2.0);
+  EXPECT_DOUBLE_EQ((t7[{0, 2}]), 3.0);
 }
 
 TEST(Tensor, AddSubtract) {
@@ -126,8 +131,9 @@ TEST(Tensor, Multiply) {
                              Tensor<double>({2, 1, 3}), {1});
   EXPECT_EQ(t8, Tensor<double>({{2, 1, 3}, {6, 3, 9}, {4, 2, 6}}));
 
-  auto t9 = multiply<double>(Tensor<double>({1, 3, 2}), {-1},
-                             Tensor<double>({2, 1, 3}), {-1});
+  auto t9 = multiply<double>(
+      Tensor<double>({1, 3, 2}), {-1},
+      Tensor<double>(Tensor<double>::Data2D({{2, 1, 3}})), {0, -1});
   EXPECT_EQ(t9, Tensor<double>({11}));
 }
 
