@@ -194,6 +194,7 @@ Tensor<T>::Tensor(const std::vector<std::vector<std::vector<T>>>& data) {
   ptr_ = Dense(shape, result).clone();
 }
 
+/*
 Shape outerProductShape(const Shape& shape);
 Shape outerProductShape(const Shape& shape) {
   Indices index1(shape.nDimensions());
@@ -206,6 +207,7 @@ Shape outerProductShape(const Shape& shape) {
   std::tie(result, std::ignore) = multiplyShapes(shape, index1, shape, index2);
   return result;
 }
+*/
 
 // Makes an eye with shape x shape, so that e_ij,lm = delta_il delta_jm
 template <typename T>

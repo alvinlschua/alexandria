@@ -9,10 +9,12 @@ Shape resultShape(const Shape& shape1, const Indices& indices1,
                   const Shape& shape2, const Indices& indices2) {
   auto result_nDim =
       std::max(*std::max_element(indices1.cbegin(), indices1.cend()),
-               *std::max_element(indices2.cbegin(), indices2.cend())) +
-      1;
+               *std::max_element(indices2.cbegin(), indices2.cend()));
+  if (result_nDim < 0) {
+    return Shape({1});
+  }
 
-  std::vector<size_t> result_dim(static_cast<size_t>(result_nDim), 0);
+  std::vector<size_t> result_dim(static_cast<size_t>(result_nDim + 1), 0);
 
   auto shape_pos = 0ul;
   for (const auto& index : indices1) {

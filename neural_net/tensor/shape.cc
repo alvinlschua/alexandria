@@ -20,12 +20,15 @@ size_t nElements(const Shape& shape) {
 std::ostream& operator<<(std::ostream& out, const Shape& s) {
   out << "Shape(";
   auto iter = s.cbegin();
-  for (; iter != s.cend() - 1; ++iter) {
-    out << *iter << ", ";
+  for (; iter != s.cend(); ++iter) {
+    out << *iter;
+    if (iter != s.cend() - 1) {
+      out << ", ";
+    }
   }
-  out << *iter << ")";
+  out << ")";
 
   return out;
 }
 
-}  // namespace NeuralNet 
+}  // namespace NeuralNet

@@ -29,8 +29,7 @@ class Tensor<T>::Dense : public Base {
   using Iterator = typename Data::iterator;
   using ConstIterator = typename Data::const_iterator;
 
-  // Construct a scalar.
-  Dense() : shape_({1}), accesser_(&shape_), data_(1) {}
+  Dense() {}
 
   Dense(const Shape& shape, Data data)
       : shape_(shape), accesser_(&shape_), data_(std::move(data)) {}
