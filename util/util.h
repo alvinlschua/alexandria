@@ -88,12 +88,13 @@ inline void gather(IndexIterator index_begin, IndexIterator index_end,
                    std::function<int(int)> reindex = [](int index) {
                      return index;
                    }) {
-  std::transform(index_begin, index_end, result_begin,
-                 [begin, result_begin, &reindex](int old_index) {
-                   auto index = reindex(old_index);
-                   return index != invalid_index ? *(begin + index)
-                                                 : *(result_begin + old_index);
-                 });
+  auto iter = index_begin;
+  auto riter = result_begin;
+  for (; iter != index_end; ++iter, ++riter) {
+    auto new_index = reindex(*iter);
+    if (new_index == invalid_index) continue;
+    (*riter) = *(begin + new_index);
+  }
 }
 
 // The scatter operation computes

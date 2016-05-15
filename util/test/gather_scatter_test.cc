@@ -7,8 +7,8 @@
 #include "gtest/gtest.h"
 #pragma clang diagnostic pop
 
-#include <vector>
 #include "util/util.h"
+#include <vector>
 
 TEST(Util, Gather) {
   using Util::gather;
@@ -21,9 +21,16 @@ TEST(Util, Gather) {
   gather(indices.cbegin(), indices.cend(), x.cbegin(), result.begin());
   EXPECT_EQ(result, std::vector<int>({1, 1, 2, 4}));
 
-  std::vector<size_t> indices2({1, 0, 3, 2});
+  std::vector<int> indices2({1, 0, 3, 2});
   gather(indices2.cbegin(), indices2.cend(), x.cbegin(), result.begin());
   EXPECT_EQ(result, std::vector<int>({2, 1, 4, 3}));
+
+  std::vector<int> indices3({0, -1, 1, 3});
+  std::vector<int> result2({5, 6, 7, 8});
+
+  gather(indices3.cbegin(), indices3.cend(), x.cbegin(), result2.begin(),
+         [](int index) { return index >= 0 ? index : Util::invalid_index; });
+  EXPECT_EQ(result2, std::vector<int>({1, 6, 2, 4}));
 
   // TODO(alvin): add tests for filters
 }

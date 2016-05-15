@@ -55,12 +55,11 @@ TEST(Archive, Primitive) {
 
   float float_out = 1.4f;
   ar_out % float_out;
-  ;
 
   double double_out = 31.4;
   ar_out % double_out;
 
-  long double long_double_out = 314.42;
+  long double long_double_out = 314.42l;
   ar_out % long_double_out;
 
   string string_out = "abcdefg";

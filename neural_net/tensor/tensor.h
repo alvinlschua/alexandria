@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "neural_net/tensor/accesser.h"
-#include "neural_net/tensor/shape.h"
 #include "neural_net/tensor/helpers.h"
+#include "neural_net/tensor/shape.h"
 #include "util/clonable.h"
 #include "util/serializable.h"
 #include "util/util.h"
@@ -30,10 +30,11 @@ class Tensor : public Util::Serializable {
   class Sparse;
 
   using Ptr = std::unique_ptr<Base>;
+  using ValueType = T;
 
   virtual ~Tensor() {}
 
-  Tensor() {}
+  Tensor() :ptr_(std::make_unique<Dense>()) {}
 
   Tensor(const Tensor& tensor) : ptr_(tensor.ptr_->clone()) {}
   Tensor& operator=(const Tensor& tensor) {
@@ -59,8 +60,7 @@ class Tensor : public Util::Serializable {
   static Tensor generate(const Shape& shape, std::function<T(Address)> fn);
 
   // shape
-  static Tensor outerProductEye(const Shape& half_shape);
-  static Tensor outerProductZeros(const Shape& half_shape);
+  static Tensor sparseEye(const Shape& shape, T value = 1);
 
   // Return the number of elements.
   size_t size() const { return ptr_->size(); }
@@ -207,26 +207,26 @@ Shape outerProductShape(const Shape& shape) {
   return result;
 }
 
-template <typename T>
-Tensor<T> Tensor<T>::outerProductZeros(const Shape& shape) {
-  return Tensor<T>::sparse(outerProductShape(shape));
-}
-
 // Makes an eye with shape x shape, so that e_ij,lm = delta_il delta_jm
 template <typename T>
-Tensor<T> Tensor<T>::outerProductEye(const Shape& shape) {
-  Shape resultShape = outerProductShape(shape);
+Tensor<T> Tensor<T>::sparseEye(const Shape& shape, T value) {
+  if (!isEyeShape(shape)) {
+    throw std::invalid_argument("shape not suitable for eye");
+  }
 
-  Sparse result(resultShape);
-  Accesser accesser(&shape);
+  std::vector<size_t> dims(shape.begin(),
+                           shape.begin() + shape.nDimensions() / 2);
+  Shape parseShape = Shape(dims);
+  Accesser accesser(&parseShape);
 
+  Sparse result(shape);
+  auto resultAddress = Address(shape.nDimensions());
   for (const auto& address : accesser) {
-    auto resultAddress = address;
-    resultAddress.resize(2 * shape.nDimensions());
-    std::copy(address.cbegin(), address.cend(),
-              resultAddress.begin() + static_cast<int>(shape.nDimensions()));
+    auto iter =
+        std::copy(address.cbegin(), address.cend(), resultAddress.begin());
+    std::copy(address.cbegin(), address.cend(), iter);
 
-    result[resultAddress] = 1;
+    result[resultAddress] = value;
   }
 
   return Tensor(result);
@@ -271,15 +271,15 @@ Tensor<T> apply(Tensor<T> t, std::function<T(T)> fn) {
   if (t.template isType<typename Tensor<T>::Dense>()) {
     auto& temp = t.template reference<typename Tensor<T>::Dense>();
     std::transform(temp.cbegin(), temp.cend(), temp.begin(), fn);
-  } else if (t.template isType<typename Tensor<T>::Sparse>()) {
+  } else {
     auto& temp = t.template reference<typename Tensor<T>::Sparse>();
+    if (!Util::almostEqual(fn(0), 0)) {
+      throw std::invalid_argument(
+          "apply function for sparse tensors must obey f(0) == 0");
+    }
     for (auto& item : temp) {
       item.second = fn(item.second);
     }
-    temp.defaultValue(fn(temp.defaultValue()));
-  } else {
-    throw Util::unimplemented_exception(
-        "apply binary not implemented for type");
   }
 
   return t;
@@ -300,11 +300,25 @@ Tensor<T> apply(Tensor<T> t1, const Tensor<T>& t2, std::function<T(T, T)> fn) {
     auto& temp2 = t2.template reference<typename Tensor<T>::Dense>();
     std::transform(temp1.cbegin(), temp1.cend(), temp2.cbegin(), temp1.begin(),
                    fn);
+  } else if (t1.template isType<typename Tensor<T>::Dense>()) {
+    auto accesser = Accesser(&t1.shape());
+    for (const auto& address : accesser) {
+      t1[address] = fn(t1.at(address), t2.at(address));
+    }
   } else {
-    throw Util::unimplemented_exception(
-        "apply binary not implemented for type");
-  }
+    auto& temp1 = t1.template reference<typename Tensor<T>::Sparse>();
 
+    auto accesser = Accesser(&t1.shape());
+    for (const auto& address : accesser) {
+      auto result = fn(t1.at(address), t2.at(address));
+      auto zero = Util::almostEqual(result, 0);
+      if (zero) {
+        temp1.zero(address);
+      } else {
+        temp1[address] = result;
+      }
+    }
+  }
   return t1;
 }
 
@@ -363,12 +377,13 @@ inline Tensor<T> operator-(const Tensor<T>& t1, const Tensor<T>& t2) {
   return minus(t1, t2);
 }
 
+/*
 template <typename T>
 typename Tensor<T>::Dense multiply(const typename Tensor<T>::Dense& t1,
                                    const Indices& indices1,
                                    const typename Tensor<T>::Dense& t2,
                                    const Indices& indices2);
-
+*/
 /*
 template <typename T>
 Tensor<T> multiply(const Tensor<T>& t1, const Indices index1,
@@ -475,11 +490,13 @@ std::ostream& operator<<(std::ostream& out, const Tensor<T>& t) {
 
   out << shape << "{";
   if (size > 12) {
-    out << " " << size << " elements ";
+    out << " " << size << " elements }";
   } else {
     for (auto iter = accesser.begin(); iter != accesser.end(); ++iter) {
       out << t[*iter];
-      out << (iter == accesser.end() ? "}" : " ");
+      auto nextIter = iter;
+      ++nextIter;
+      out << (nextIter == accesser.end() ? "}" : " ");
     }
   }
 

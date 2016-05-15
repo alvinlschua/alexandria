@@ -1,6 +1,6 @@
-#include <vector>
 #include "neural_net/tensor/helpers.h"
 #include "neural_net/tensor/shape.h"
+#include <vector>
 
 namespace NeuralNet {
 
@@ -101,6 +101,13 @@ std::pair<Shape, Shape> multiplyShapes(const Shape& shape1,
 
   return {resultShape(shape1, indices1, shape2, indices2),
           commonShape(shape1, indices1, shape2, indices2)};
+}
+
+Shape combineShapes(const Shape& shape1, const Shape& shape2) {
+  std::vector<size_t> dims(shape1.nDimensions() + shape2.nDimensions());
+  auto iter = std::copy(shape1.cbegin(), shape1.cend(), dims.begin());
+  std::copy(shape2.cbegin(), shape2.cend(), iter);
+  return Shape(dims);
 }
 
 bool indicesUnique(Indices indices) {

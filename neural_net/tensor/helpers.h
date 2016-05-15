@@ -1,8 +1,8 @@
 #ifndef TENSOR_HELPERS_H
 #define TENSOR_HELPERS_H
 
-#include <tuple>
 #include "neural_net/tensor/shape.h"
+#include <tuple>
 
 namespace NeuralNet {
 
@@ -18,6 +18,18 @@ std::pair<Shape, Shape> multiplyShapes(const Shape& shape1,
                                        const Indices& indices1,
                                        const Shape& shape2,
                                        const Indices& indices2);
+
+// Returns the combined shape.
+Shape combineShapes(const Shape& shape1, const Shape& shape2);
+
+inline bool isEyeShape(const Shape& shape) {
+  if (shape.nDimensions() % 2 != 0) {
+    return false;
+  }
+
+  return std::equal(shape.cbegin(), shape.cbegin() + shape.nDimensions() / 2,
+                    shape.cbegin() + shape.nDimensions() / 2);
+}
 
 }  // Tensor
 

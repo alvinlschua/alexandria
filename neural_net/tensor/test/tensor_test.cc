@@ -58,6 +58,15 @@ TEST(Tensor, Constructors) {
   EXPECT_DOUBLE_EQ((t6[{1, 2}]), 3.0);
 }
 
+TEST(Tensor, Scalar) {
+  using namespace Util;
+  using namespace NeuralNet;
+  auto t1 = Tensor<double>();
+  t1[{0}] = 2;
+
+  EXPECT_EQ(t1[{0}], 2);
+}
+
 TEST(Tensor, AddSubtract) {
   using namespace Util;
   using namespace NeuralNet;
@@ -65,6 +74,7 @@ TEST(Tensor, AddSubtract) {
   auto t1 = Tensor<double>({{1, 3, 2}, {4, 1, 4}});
   auto t2 = t1 + Tensor<double>({{3, 1, 2}, {1, 4, 4}});
   EXPECT_EQ(t2, Tensor<double>({{4, 4, 4}, {5, 5, 8}}));
+  EXPECT_EQ(t1 + t1, Tensor<double>({{2, 6, 4}, {8, 2, 8}}));
 
   auto t3 = Tensor<double>({{1, 3, 2}, {4, 1, 4}});
   t3 = plus(std::move(t3), Tensor<double>({{3, 1, 2}, {1, 4, 4}}));

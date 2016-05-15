@@ -1,8 +1,8 @@
 #include <sstream>
 
 #include "neural_net/tensor/tensor.h"
-#include "neural_net/tensor/tensor_sparse.h"
 #include "neural_net/tensor/tensor_dense.h"
+#include "neural_net/tensor/tensor_sparse.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundef"
@@ -33,7 +33,7 @@ TEST(Tensor, Constructors) {
 
   EXPECT_EQ(t1.size(), 3);
 
-  auto t2 = Tensor<double>::outerProductEye(Shape({3}));
+  auto t2 = Tensor<double>::sparseEye(Shape({3, 3}));
   EXPECT_EQ(t2.size(), 3);
 
   EXPECT_DOUBLE_EQ(t2.at({0, 0}), 1.0);
@@ -42,10 +42,10 @@ TEST(Tensor, Constructors) {
   EXPECT_DOUBLE_EQ(t2.at({2, 2}), 1.0);
   EXPECT_EQ(t2.size(), 3);
 
-  auto t3 = Tensor<double>::outerProductZeros(Shape({3}));
+  auto t3 = Tensor<double>::sparse(Shape({3, 3}));
   EXPECT_EQ(t3.size(), 0);
 
-  auto t4 = Tensor<double>::outerProductEye(Shape({3}));
+  auto t4 = Tensor<double>::sparseEye(Shape({3, 3}));
   auto t5 = Tensor<double>::zeros(Shape({3, 3}));
 
   t5[{0, 0}] = 1;
@@ -55,14 +55,41 @@ TEST(Tensor, Constructors) {
   t5[{2, 2}] = 1;
   EXPECT_EQ(t4, t5);
 
-  auto t6 = Tensor<double>::outerProductEye(Shape({3}));
+  auto t6 = Tensor<double>::sparseEye(Shape({3, 3}));
   EXPECT_EQ(t4, t6);
 
-  auto t7 = Tensor<double>::outerProductZeros(Shape({3}));
+  auto t7 = Tensor<double>::sparse(Shape({3, 3}));
   EXPECT_NE(t4, t7);
 
-  auto t8 = Tensor<double>::outerProductEye(Shape({3, 1}));
+  auto t8 = Tensor<double>::sparseEye(Shape({3, 1, 3, 1}));
   EXPECT_NE(t4, t8);
+}
+
+TEST(Tensor, Op) {
+  using namespace NeuralNet;
+  using namespace std;
+
+  auto t1 = Tensor<double>::sparse(Shape({3}));
+  t1[{0}] = 4;
+  auto t2 = Tensor<double>::sparse(Shape({3}));
+  t2[{1}] = 5;
+
+  EXPECT_EQ(t1 + t2, Tensor<double>({4, 5, 0}));
+  EXPECT_EQ(t2 + t1, Tensor<double>({4, 5, 0}));
+  EXPECT_EQ(t1 - t2, Tensor<double>({4, -5, 0}));
+  EXPECT_EQ(t2 - t1, Tensor<double>({-4, 5, 0}));
+  EXPECT_EQ(t1 - t1, Tensor<double>({0, 0, 0}));
+  EXPECT_EQ(t2 - t2, Tensor<double>({0, 0, 0}));
+
+  EXPECT_EQ(multiply(Tensor<double>({{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}), {-1, 0},
+                     Tensor<double>({1, 2, 3}), {-1}),
+            Tensor<double>({1, 2, 3}));
+  EXPECT_EQ(multiply(Tensor<double>({{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}), {0, -1},
+                     Tensor<double>({1, 2, 3}), {-1}),
+            Tensor<double>({1, 2, 3}));
+  EXPECT_EQ(multiply(Tensor<double>::sparseEye(Shape({3, 3})), {-1, 0},
+                     Tensor<double>({1, 2, 3}), {-1}),
+            Tensor<double>({1, 2, 3}));
 }
 
 int main(int argc, char** argv) {

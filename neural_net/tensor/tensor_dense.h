@@ -3,10 +3,10 @@
 
 #include <vector>
 
-#include "neural_net/tensor/tensor_base.h"
 #include "neural_net/tensor/accesser.h"
-#include "neural_net/tensor/shape.h"
 #include "neural_net/tensor/helpers.h"
+#include "neural_net/tensor/shape.h"
+#include "neural_net/tensor/tensor_base.h"
 #include "util/rng.h"
 #include "util/serializable.h"
 #include "util/util.h"
@@ -29,8 +29,8 @@ class Tensor<T>::Dense : public Base {
   using Iterator = typename Data::iterator;
   using ConstIterator = typename Data::const_iterator;
 
-  // Default constructor
-  Dense() {}
+  // Construct a scalar.
+  Dense() : shape_({1}), accesser_(&shape_), data_(1) {}
 
   Dense(const Shape& shape, Data data)
       : shape_(shape), accesser_(&shape_), data_(std::move(data)) {}

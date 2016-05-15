@@ -31,11 +31,13 @@ class Tensor<T>::Sparse : public Base {
   Sparse() {}
 
   // Make a sparse tensor
-  explicit Sparse(const Shape& shape) : shape_(shape), defaultValue_(0) {}
+  explicit Sparse(const Shape& shape) : shape_(shape) {}
   Sparse(const Sparse&) = default;
   Sparse& operator=(const Sparse&) = default;
 
   virtual ~Sparse() {}
+
+  void zero(const Address& address) { data_.erase(address); }
 
   // Iterators.
   ConstIterator begin() const { return data_.cbegin(); }
@@ -44,9 +46,6 @@ class Tensor<T>::Sparse : public Base {
   ConstIterator cend() const { return data_.cend(); }
   Iterator begin() { return data_.begin(); }
   Iterator end() { return data_.end(); }
-
-  T defaultValue() const { return defaultValue_; }
-  void defaultValue(T value) { defaultValue_ = value; }
 
  private:
   // Return the number of elements.
@@ -58,14 +57,14 @@ class Tensor<T>::Sparse : public Base {
   // Access an element.
   T atConstImpl(const Address& address) const {
     auto iter = data_.find(address);
-    return iter != data_.end() ? iter->second : defaultValue();
+    return iter != data_.end() ? iter->second : 0;
   }
 
   // Access an element.
   T& atImpl(const Address& address) {
     auto iter = data_.find(address);
     if (iter == data_.end()) {
-      data_[address] = defaultValue();
+      data_[address] = 0;
     }
     return data_[address];
   }
@@ -81,11 +80,11 @@ class Tensor<T>::Sparse : public Base {
   }
 
   void serializeInImpl(Util::ArchiveIn& ar, size_t /*version*/) final {
-    ar % shape_ % data_ % defaultValue_;
+    ar % shape_ % data_;
   }
 
   void serializeOutImpl(Util::ArchiveOut& ar) const final {
-    ar % shape_ % data_ % defaultValue_;
+    ar % shape_ % data_;
   }
   size_t serializeOutVersionImpl() const final { return 0ul; }
 
@@ -95,7 +94,6 @@ class Tensor<T>::Sparse : public Base {
 
   Shape shape_;
   Data data_;
-  T defaultValue_;
 };
 /*
   // Makes and eye with shape x shape, so that e_ij,lm = delta_il delta_jm
