@@ -12,7 +12,7 @@ Shape resultShape(const Shape& shape1, const Indices& indices1,
                *std::max_element(indices2.cbegin(), indices2.cend())) +
       1;
   if (result_nDim <= 0) {
-    throw std::invalid_argument("indices has no results");
+    throw std::invalid_argument("multiply result must have a shape");
   }
 
   std::vector<size_t> result_dim(static_cast<size_t>(result_nDim), 0);
