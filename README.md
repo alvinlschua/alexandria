@@ -10,6 +10,9 @@ A library that does automatic differentiation using type erasure.
 
 Third Party dependencies
 ------------------------
-Alexandria depends on the following third party libraries
+Alexandria depends on the following third party libraries:
+
     * glog
     * gtest
+    * gflags
+    * cimg

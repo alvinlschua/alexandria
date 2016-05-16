@@ -31,6 +31,10 @@ class Tensor<T>::Dense : public Base {
 
   Dense() {}
 
+  // Construct an uninitialized Tensor<T>::Dense.
+  explicit Dense(const Shape& shape)
+      : shape_(shape), accesser_(&shape_), data_(nElements(shape)) {}
+
   Dense(const Shape& shape, Data data)
       : shape_(shape), accesser_(&shape_), data_(std::move(data)) {}
 
@@ -55,9 +59,6 @@ class Tensor<T>::Dense : public Base {
     return *this;
   }
 
-  // Construct an uninitialized TensorDense.
-  explicit Dense(const Shape& shape)
-      : shape_(shape), accesser_(&shape_), data_(nElements(shape)) {}
 
   // Iterators.
   ConstIterator begin() const { return data_.cbegin(); }
