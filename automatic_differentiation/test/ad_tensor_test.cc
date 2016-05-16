@@ -6,7 +6,7 @@
 #include "automatic_differentiation/ad_tensor.h"
 #include "automatic_differentiation/ad_unary_tensor.h"
 #include "automatic_differentiation/ad_var_tensor.h"
-#include "neural_net/tensor/helpers.h"
+#include "tensor/helpers.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundef"

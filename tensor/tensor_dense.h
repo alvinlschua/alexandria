@@ -3,10 +3,10 @@
 
 #include <vector>
 
-#include "neural_net/tensor/accesser.h"
-#include "neural_net/tensor/helpers.h"
-#include "neural_net/tensor/shape.h"
-#include "neural_net/tensor/tensor_base.h"
+#include "tensor/accesser.h"
+#include "tensor/helpers.h"
+#include "tensor/shape.h"
+#include "tensor/tensor_base.h"
 #include "util/rng.h"
 #include "util/serializable.h"
 #include "util/util.h"

@@ -7,9 +7,9 @@
 #include <utility>
 
 #include "glog/logging.h"
-#include "neural_net/tensor/tensor.h"
-#include "neural_net/tensor/tensor_sparse.h"
-#include "neural_net/tensor/tensor_dense.h"
+#include "tensor/tensor.h"
+#include "tensor/tensor_sparse.h"
+#include "tensor/tensor_dense.h"
 
 // Use this in place of ad when differentiating tensors.
 namespace AutomaticDifferentiation {

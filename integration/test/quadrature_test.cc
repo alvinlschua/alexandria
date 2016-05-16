@@ -1,4 +1,4 @@
-#include "numerical_recipes/integration/quadrature.h"
+#include "integration/quadrature.h"
 
 #include <iostream>
 
@@ -29,7 +29,7 @@ TEST(Quadrature, Simpson) {
 }
 
 TEST(Quadrature, GaussLobatto4) {
-  using NumericalRecipes::Integration::GaussLabatto4;
+  using NumericalRecipes::Integration::GaussLobatto4;
 
   GaussLobatto4<double> integrate(20);
 
@@ -44,7 +44,7 @@ TEST(Quadrature, GaussLobatto4) {
 }
 
 TEST(Quadrature, GaussLobatto5) {
-  using NumericalRecipes::Integration::GaussLabatto5;
+  using NumericalRecipes::Integration::GaussLobatto5;
 
   GaussLobatto5<double> integrate(20);
 

@@ -1,7 +1,7 @@
 #ifndef TENSOR_HELPERS_H
 #define TENSOR_HELPERS_H
 
-#include "neural_net/tensor/shape.h"
+#include "tensor/shape.h"
 #include <tuple>
 
 namespace NeuralNet {

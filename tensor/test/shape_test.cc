@@ -9,7 +9,7 @@
 
 #include <sstream>
 
-#include "neural_net/tensor/shape.h"
+#include "tensor/shape.h"
 
 TEST(Shape, Basic) {
   using namespace Util;

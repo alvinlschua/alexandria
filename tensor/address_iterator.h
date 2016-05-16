@@ -3,7 +3,7 @@
 
 #include <iterator>
 
-#include "neural_net/tensor/shape.h"
+#include "tensor/shape.h"
 
 namespace NeuralNet {
 

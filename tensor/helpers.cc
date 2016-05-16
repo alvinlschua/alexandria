@@ -1,5 +1,5 @@
-#include "neural_net/tensor/helpers.h"
-#include "neural_net/tensor/shape.h"
+#include "tensor/helpers.h"
+#include "tensor/shape.h"
 #include <vector>
 
 namespace NeuralNet {

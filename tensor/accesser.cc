@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <numeric>
 
-#include "neural_net/tensor/accesser.h"
+#include "tensor/accesser.h"
 
 namespace NeuralNet {
 

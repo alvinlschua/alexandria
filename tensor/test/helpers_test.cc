@@ -7,8 +7,8 @@
 #include "gtest/gtest.h"
 #pragma clang diagnostic pop
 
-#include "neural_net/tensor/shape.h"
-#include "neural_net/tensor/helpers.h"
+#include "tensor/shape.h"
+#include "tensor/helpers.h"
 
 TEST(Helpers, indicesUnique) {
   using namespace NeuralNet;

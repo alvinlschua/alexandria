@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "neural_net/tensor/shape.h"
+#include "tensor/shape.h"
 #include "util/serializable.h"
 #include "util/clonable.h"
 

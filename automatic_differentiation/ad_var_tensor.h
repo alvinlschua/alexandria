@@ -2,7 +2,7 @@
 #define AUTOMATIC_DIFFERENTIATION_AD_VAR_TENSOR_H_
 
 #include "automatic_differentiation/ad_expression_tensor.h"
-#include "neural_net/tensor/tensor.h"
+#include "tensor/tensor.h"
 
 namespace AutomaticDifferentiation {
 

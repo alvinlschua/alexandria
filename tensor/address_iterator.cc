@@ -1,7 +1,7 @@
 #include <iterator>
 
-#include "neural_net/tensor/accesser.h"
-#include "neural_net/tensor/address_iterator.h"
+#include "tensor/accesser.h"
+#include "tensor/address_iterator.h"
 
 namespace NeuralNet {
 

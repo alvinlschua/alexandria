@@ -1,8 +1,8 @@
 #include <sstream>
 
-#include "neural_net/tensor/tensor.h"
-#include "neural_net/tensor/tensor_dense.h"
-#include "neural_net/tensor/tensor_sparse.h"
+#include "tensor/tensor.h"
+#include "tensor/tensor_dense.h"
+#include "tensor/tensor_sparse.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundef"

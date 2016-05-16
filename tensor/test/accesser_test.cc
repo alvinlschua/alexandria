@@ -9,7 +9,7 @@
 
 #include <sstream>
 
-#include "neural_net/tensor/accesser.h"
+#include "tensor/accesser.h"
 
 TEST(Accesser, Basic1) {
   using namespace Util;

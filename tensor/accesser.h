@@ -4,8 +4,8 @@
 #include <numeric>
 #include <vector>
 
-#include "neural_net/tensor/address_iterator.h"
-#include "neural_net/tensor/shape.h"
+#include "tensor/address_iterator.h"
+#include "tensor/shape.h"
 
 namespace NeuralNet {
 
