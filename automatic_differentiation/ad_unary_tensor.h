@@ -211,6 +211,100 @@ class Reshape : public AD<T>::Unary {
   NeuralNet::Indices indices_;
 };
 
+template <typename T>
+class Diagonal : public AD<T>::Unary {
+ public:
+  using VarValues = typename AD<T>::VarValues;
+  using Shape = typename AD<T>::Shape;
+  using Sparse = typename T::Sparse;
+  using Indices = typename NeuralNet::Indices;
+
+  Diagonal(const Diagonal&) = default;
+  Diagonal& operator=(const Diagonal&) = default;
+  virtual ~Diagonal() {}
+
+  static AD<T> makeAD(const AD<T>& ad) { return AD<T>(Diagonal(ad).clone()); }
+
+ private:
+  explicit Diagonal(const AD<T>& ad)
+      : AD<T>::Unary(ad),
+        resultShape_(NeuralNet::combineShapes(ad.shape(), ad.shape())),
+        indicesEye_(resultShape_.nDimensions()),
+        indices_(ad.shape().nDimensions()) {
+    iota(indicesEye_.begin(), indicesEye_.end(), 0);
+    iota(indices_.begin(), indices_.end(), indices_.size());
+  }
+
+  T f(const T& value) const final {
+    return NeuralNet::multiply(T::sparseEye(this->shape()), indicesEye_, value,
+                               indices_);
+  }
+  AD<T> dF() const final {
+    auto indices = Indices(this->shape().nDimensions());
+    iota(indices.begin(), indices.end(), indices_.size());
+    auto eye = T::sparseEye(this->shape());
+    return AD<T>(multiply(eye, indicesEye_, eye, indices));
+  }
+
+  const Shape& shapeTermImpl() const final { return this->term().shape(); }
+  const Shape& shapeImpl() const final { return resultShape_; }
+
+  std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
+    return std::make_unique<Diagonal>(*this);
+  }
+
+  std::string expressionImpl() const { return "diagonal"; }
+
+  AD<T> simplifyImpl() const final { return AD<T>(this->clone()); }
+
+  Shape resultShape_;
+  NeuralNet::Indices indicesEye_;
+  NeuralNet::Indices indices_;
+};
+
+template <typename T>
+class Sigmoid : public AD<T>::Unary {
+ public:
+  using VarValues = typename AD<T>::VarValues;
+  using Shape = typename AD<T>::Shape;
+  using Sparse = typename T::Sparse;
+  using Indices = typename NeuralNet::Indices;
+
+  Sigmoid(const Sigmoid&) = default;
+  Sigmoid& operator=(const Sigmoid&) = default;
+  virtual ~Sigmoid() {}
+
+  static AD<T> makeAD(const AD<T>& ad) { return AD<T>(Sigmoid(ad).clone()); }
+
+ private:
+  explicit Sigmoid(const AD<T>& ad) : AD<T>::Unary(ad) {}
+
+  T f(const T& value) const final {
+    return NeuralNet::apply<typename T::ValueType>(
+        value, [](typename T::ValueType x) { return 1.0 / (1.0 + exp(-x)); });
+  }
+  AD<T> dF() const final {
+    Indices diagIndices(2 * this->shape().nDimensions());
+    Indices indices(this->shape().nDimensions());
+    iota(diagIndices.begin(), diagIndices.end(), 0);
+    iota(indices.begin(), indices.end(), 0);
+    return AD<T>(
+        multiply(diagonal(T::ones(this->shapeTerm()) - sigmoid(this->term())),
+                 diagIndices, sigmoid(this->term()), indices));
+  }
+
+  const Shape& shapeTermImpl() const final { return this->term().shape(); }
+  const Shape& shapeImpl() const final { return this->shapeTerm(); }
+
+  std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
+    return std::make_unique<Sigmoid>(*this);
+  }
+
+  std::string expressionImpl() const { return "reshape"; }
+
+  AD<T> simplifyImpl() const final { return AD<T>(this->clone()); }
+};
+
 /*
 template <typename T>
 class Sin : public AD<T>::Unary {
@@ -306,6 +400,16 @@ AD<T> operator-(const AD<T>& ad) {
 template <typename T>
 AD<T> reshape(const AD<T>& ad, const NeuralNet::Shape& shape) {
   return Reshape<T>::makeAD(ad, shape);
+}
+
+template <typename T>
+AD<T> sigmoid(const AD<T>& ad) {
+  return Sigmoid<T>::makeAD(ad);
+}
+
+template <typename T>
+AD<T> diagonal(const AD<T>& ad) {
+  return Diagonal<T>::makeAD(ad);
 }
 
 /*

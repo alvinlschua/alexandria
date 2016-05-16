@@ -115,6 +115,42 @@ TEST(AD, Exceptions) {
   EXPECT_NO_THROW(identifier(x));
 }
 
+TEST(AD, UnaryOp) {
+  using T = NeuralNet::Tensor<double>;
+  using AD = AutomaticDifferentiation::AD<T>;
+  using NeuralNet::combineShapes;
+  using NeuralNet::Shape;
+
+  auto shape = Shape({3});
+  auto x = AD("x", shape);
+  auto eye = T::sparseEye(combineShapes(shape, shape));
+
+  EXPECT_EQ(value(diagonal(x).evaluateAt({x = T({1, 2, 3})})),
+            T({{1, 0, 0}, {0, 2, 0}, {0, 0, 3}}));
+  EXPECT_EQ(value(D(diagonal(x), x).evaluateAt({x = T({1, 2, 3})})),
+            multiply(eye, {0, 1}, eye, {1, 2}));
+
+  auto xx = reshape(x, Shape({1, 3}));
+  EXPECT_EQ(value(xx.evaluateAt({x = T({1, 2, 3})})),
+            T(T::Data2D({{1, 2, 3}})));
+  EXPECT_EQ(
+      value(multiply(x, {-1}, xx, {0, -1}).evaluateAt({x = T({1, 2, 3})})),
+      T({14}));
+  EXPECT_EQ(value(D(multiply(x, {-1}, xx, {0, -1}),
+                    x).evaluateAt({x = T({1, 2, 3})})),
+            T(T::Data2D({{2, 4, 6}})));
+  EXPECT_EQ(value(D(3.0 * multiply(x, {-1}, xx, {0, -1}),
+                    x).evaluateAt({x = T({1, 2, 3})})),
+            T(T::Data2D({{6, 12, 18}})));
+
+  EXPECT_EQ(value(sigmoid(x).evaluateAt({x = T({-1, 0, 1})})),
+            T({1.0 / (1.0 + exp(1)), 1.0 / 2.0, 1.0 / (1.0 + exp(-1))}));
+  EXPECT_EQ(value(D(sigmoid(x), x).evaluateAt({x = T({-1, 0, 1})})),
+            T({{1.0 / (1.0 + exp(1)) * (1.0 - 1.0 / (1.0 + exp(1))), 0, 0},
+               {0, 1.0 / 4.0, 0},
+               {0, 0, 1.0 / (1.0 + exp(-1)) * (1.0 - 1.0 / (1.0 + exp(-1)))}}));
+}
+
 TEST(AD, Op) {
   using T = NeuralNet::Tensor<double>;
   using AD = AutomaticDifferentiation::AD<T>;
@@ -152,19 +188,6 @@ TEST(AD, Op) {
             2.0 * T::sparseEye(combineShapes(shape, shape)));
   EXPECT_EQ(value(D(x - y - y + x, y)),
             -2.0 * T::sparseEye(combineShapes(shape, shape)));
-
-  auto xx = reshape(x, Shape({1, 3}));
-  EXPECT_EQ(value(xx.evaluateAt({x = T({1, 2, 3})})),
-            T(T::Data2D({{1, 2, 3}})));
-  EXPECT_EQ(
-      value(multiply(x, {-1}, xx, {0, -1}).evaluateAt({x = T({1, 2, 3})})),
-      T({14}));
-  EXPECT_EQ(value(D(multiply(x, {-1}, xx, {0, -1}),
-                    x).evaluateAt({x = T({1, 2, 3})})),
-            T(T::Data2D({{2, 4, 6}})));
-  EXPECT_EQ(value(D(3.0 * multiply(x, {-1}, xx, {0, -1}),
-                    x).evaluateAt({x = T({1, 2, 3})})),
-            T(T::Data2D({{6, 12, 18}})));
 
   /*
   EXPECT_EQ(value(D(3.0 * x * x + 5.0, x).evaluateAt({x = 2})), 12);

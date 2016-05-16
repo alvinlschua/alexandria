@@ -238,7 +238,12 @@ class Multiply : public AD<T>::Binary {
   }
 
   T f(const T& value1, const T& value2) const final {
-    return NeuralNet::multiply(value1, indices1(), value2, indices2());
+    // Multiply mimics the return type of value1.
+    // We return sparse if possible.
+    return (value1.template isType<typename T::Dense>() &&
+            value2.template isType<typename T::Sparse>())
+               ? NeuralNet::multiply(value2, indices2(), value1, indices1())
+               : NeuralNet::multiply(value1, indices1(), value2, indices2());
   }
   AD<T> dF1() const final {
     auto eyeIndex = Indices(2 * indices1().size());
