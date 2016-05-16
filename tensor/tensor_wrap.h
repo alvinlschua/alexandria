@@ -8,6 +8,7 @@
 #include "tensor/helpers.h"
 #include "tensor/shape.h"
 #include "util/clonable.h"
+#include "util/rng.h"
 #include "util/serializable.h"
 #include "util/util.h"
 
@@ -61,6 +62,10 @@ class Tensor : public Serializable {
   static Tensor dense(const Shape& shape);
   static Tensor sparse(const Shape& shape);
   static Tensor generate(const Shape& shape, std::function<T(Address)> fn);
+
+  template <typename TDistribution>
+  static Tensor random(const Shape& shape, const TDistribution& distribution);
+  static Tensor random(const Shape& shape);
 
   // shape
   static Tensor sparseEye(const Shape& shape, T value = 1);
@@ -272,6 +277,22 @@ Tensor<T> Tensor<T>::ones(const Shape& shape) {
 template <typename T>
 Tensor<T> Tensor<T>::zeros(const Shape& shape) {
   return fill(shape, 0);
+}
+
+// Make a random tensor. TDistribution should be a RandomNumberDistribution
+// concept.
+template <typename T>
+template <typename TDistribution>
+Tensor<T> Tensor<T>::random(const Shape& shape,
+                            const TDistribution& distribution) {
+  auto data = rng().generate(distribution, nElements(shape));
+  return Tensor<T>(Dense(shape, data));
+}
+
+// Make a uniform(-1, 1) random tensor.
+template <typename T>
+Tensor<T> Tensor<T>::random(const Shape& shape) {
+  return random(shape, std::uniform_real_distribution<T>(-1, 1));
 }
 
 // Note: Moving apply functionality is worth it only if it is treated as a

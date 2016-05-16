@@ -59,7 +59,6 @@ class Tensor<T>::Dense : public Base {
     return *this;
   }
 
-
   // Iterators.
   ConstIterator begin() const { return data_.cbegin(); }
   ConstIterator end() const { return data_.cend(); }
@@ -90,9 +89,7 @@ class Tensor<T>::Dense : public Base {
     accesser_ = Accesser(&shape_);
   }
 
-  void serializeOutImpl(ArchiveOut& ar) const final {
-    ar % shape_ % data_;
-  }
+  void serializeOutImpl(ArchiveOut& ar) const final { ar % shape_ % data_; }
 
   size_t serializeOutVersionImpl() const final { return 0ul; }
 
@@ -122,19 +119,6 @@ std::ostream& operator<<(std::ostream& out,
 
   return out;
 }
-/*
-// Make a random tensor. TDistribution should be a RandomNumberDistribution
-// concept.
-template <typename TDistribution>
-static TensorDense random(const Shape& shape, const TDistribution&
-distribution);
-
-// Make a uniform(-1, 1) random tensor.
-static TensorDense random(const Shape& shape) {
-  return random(shape, std::uniform_real_distribution(-1, 1));
-}
-
-*/
 
 }  // Tensor
 

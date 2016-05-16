@@ -1,13 +1,6 @@
 #include <cmath>
 
-#include "automatic_differentiation/ad_binary_tensor.h"
-#include "automatic_differentiation/ad_const_tensor.h"
-#include "automatic_differentiation/ad_param_tensor.h"
 #include "automatic_differentiation/ad_tensor.h"
-#include "automatic_differentiation/ad_unary_tensor.h"
-#include "automatic_differentiation/ad_var_tensor.h"
-#include "tensor/shape.h"
-#include "tensor/helpers.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundef"
