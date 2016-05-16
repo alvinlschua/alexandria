@@ -14,7 +14,7 @@
 #pragma clang diagnostic pop
 
 TEST(Quadrature, Simpson) {
-  using NumericalRecipes::Integration::Simpson;
+  using Alexandria::Simpson;
 
   Simpson<double> integrate(20);
 
@@ -29,7 +29,7 @@ TEST(Quadrature, Simpson) {
 }
 
 TEST(Quadrature, GaussLobatto4) {
-  using NumericalRecipes::Integration::GaussLobatto4;
+  using Alexandria::GaussLobatto4;
 
   GaussLobatto4<double> integrate(20);
 
@@ -44,7 +44,7 @@ TEST(Quadrature, GaussLobatto4) {
 }
 
 TEST(Quadrature, GaussLobatto5) {
-  using NumericalRecipes::Integration::GaussLobatto5;
+  using Alexandria::GaussLobatto5;
 
   GaussLobatto5<double> integrate(20);
 
@@ -59,7 +59,7 @@ TEST(Quadrature, GaussLobatto5) {
 }
 
 TEST(Quadrature, GaussLegendre3) {
-  using NumericalRecipes::Integration::GaussLegendre3;
+  using Alexandria::GaussLegendre3;
 
   GaussLegendre3<double> integrate(20);
 
@@ -74,7 +74,7 @@ TEST(Quadrature, GaussLegendre3) {
 }
 
 TEST(Quadrature, GaussLegendre4) {
-  using NumericalRecipes::Integration::GaussLegendre4;
+  using Alexandria::GaussLegendre4;
 
   GaussLegendre4<double> integrate(20);
 

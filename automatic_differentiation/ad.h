@@ -8,7 +8,7 @@
 
 #include "glog/logging.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 // A wrapper class that implements a simple for of type erasure.
 template <typename T>
@@ -205,6 +205,6 @@ ADVector<T> grad(const AD<T>& expr, const std::vector<AD<T>>& vars) {
   return result;
 }
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_H_

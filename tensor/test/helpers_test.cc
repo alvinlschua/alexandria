@@ -11,7 +11,7 @@
 #include "tensor/helpers.h"
 
 TEST(Helpers, indicesUnique) {
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   Indices indices1({1, 2, 3, 4});
@@ -22,7 +22,7 @@ TEST(Helpers, indicesUnique) {
 }
 
 TEST(Helpers, multiplyShapes) {
-  using namespace NeuralNet;
+  using namespace Alexandria;
 
   Shape shape1({3, 4, 2});
   Shape shape2({3, 4, 3, 2});

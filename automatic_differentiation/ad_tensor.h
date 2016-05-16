@@ -12,7 +12,7 @@
 #include "tensor/tensor_dense.h"
 
 // Use this in place of ad when differentiating tensors.
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 // A wrapper class that implements a simple for of type erasure.
 template <typename T>
@@ -20,7 +20,6 @@ class AD {
  public:
   using VarValue = std::pair<AD<T>, T>;
   using VarValues = std::vector<VarValue>;
-  using Shape = NeuralNet::Shape;
 
   class Expression;
   class Const;
@@ -207,6 +206,6 @@ AD<T> D(const AD<T>& expr, const std::vector<AD<T>>& vars) {
   return result;
 }
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_TENSOR_H_

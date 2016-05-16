@@ -6,6 +6,7 @@
 #include "automatic_differentiation/ad_tensor.h"
 #include "automatic_differentiation/ad_unary_tensor.h"
 #include "automatic_differentiation/ad_var_tensor.h"
+#include "tensor/shape.h"
 #include "tensor/helpers.h"
 
 #pragma clang diagnostic push
@@ -18,11 +19,11 @@
 #pragma clang diagnostic pop
 
 TEST(AD, Basic) {
-  using TensorDouble = NeuralNet::Tensor<double>;
-  using Shape = NeuralNet::Shape;
-  using AD = AutomaticDifferentiation::AD<TensorDouble>;
+  using T = Alexandria::Tensor<double>;
+  using AD = Alexandria::AD<T>;
+  using Alexandria::Shape;
 
-  AD c(TensorDouble({5.0, 2.0, 3.0}));
+  AD c(T({5.0, 2.0, 3.0}));
 
   AD x("x", Shape({3}));
   auto y = AD("y", Shape({3}));
@@ -31,17 +32,15 @@ TEST(AD, Basic) {
   EXPECT_EQ(c.expression(), "Shape(3){5 2 3}");
   EXPECT_TRUE(c.isType<AD::Const>());
   EXPECT_FALSE(c.isType<AD::Var>());
-  EXPECT_EQ(c.evaluateAt({x = TensorDouble({2, 2, 3})}).expression(),
-            "Shape(3){5 2 3}");
+  EXPECT_EQ(c.evaluateAt({x = T({2, 2, 3})}).expression(), "Shape(3){5 2 3}");
   EXPECT_EQ(c.differentiate(x).expression(), "Shape(3, 3){0 0 0 0 0 0 0 0 0}");
   EXPECT_TRUE(c.differentiate(x).isType<AD::Const>());
-  EXPECT_EQ(value(c), TensorDouble({5, 2, 3}));
+  EXPECT_EQ(value(c), T({5, 2, 3}));
 
   EXPECT_EQ(x.expression(), "x");
   EXPECT_TRUE(x.isType<AD::Var>());
   EXPECT_FALSE(x.isType<AD::Const>());
-  EXPECT_EQ(x.evaluateAt({x = TensorDouble({1, 2, 4})}).expression(),
-            "Shape(3){1 2 4}");
+  EXPECT_EQ(x.evaluateAt({x = T({1, 2, 4})}).expression(), "Shape(3){1 2 4}");
   EXPECT_EQ(x.differentiate(x).expression(), "Shape(3, 3){1 0 0 0 1 0 0 0 1}");
   EXPECT_EQ(x.differentiate(y).expression(), "Shape(3, 3){0 0 0 0 0 0 0 0 0}");
   EXPECT_EQ(identifier(x), "x");
@@ -49,55 +48,26 @@ TEST(AD, Basic) {
   EXPECT_EQ(y.expression(), "y");
   EXPECT_TRUE(y.isType<AD::Var>());
   EXPECT_FALSE(y.isType<AD::Const>());
-  EXPECT_EQ(y.evaluateAt({x = TensorDouble({2})}).expression(), "y");
+  EXPECT_EQ(y.evaluateAt({x = T({2})}).expression(), "y");
   EXPECT_EQ(y.differentiate(x).expression(), "Shape(3, 3){0 0 0 0 0 0 0 0 0}");
   EXPECT_EQ(y.differentiate(y).expression(), "Shape(3, 3){1 0 0 0 1 0 0 0 1}");
 
   EXPECT_EQ(z.expression(), "y");
   EXPECT_TRUE(z.isType<AD::Var>());
   EXPECT_FALSE(z.isType<AD::Const>());
-  EXPECT_EQ(z.evaluateAt({x = TensorDouble({2})}).expression(), "y");
+  EXPECT_EQ(z.evaluateAt({x = T({2})}).expression(), "y");
   EXPECT_EQ(z.differentiate(x).expression(), "Shape(3, 3){0 0 0 0 0 0 0 0 0}");
   EXPECT_EQ(z.differentiate(y).expression(), "Shape(3, 3){1 0 0 0 1 0 0 0 1}");
 }
 
 TEST(AD, ConstAndVar) {
-  using NeuralNet::combineShapes;
-  using TD = NeuralNet::Tensor<double>;
-  using AD = AutomaticDifferentiation::AD<TD>;
-  using NeuralNet::Shape;
-
-  auto shape = Shape({3});
-  auto shape2 = Shape({2});
-
-  auto c = AD(TD({5, 2, 1}));
-  auto x = AD("x", shape);
-  auto y = AD("y", shape2);
-  auto d = AD("d", TD({3, 2, 1}));
-
-  EXPECT_EQ(value(D(c, x)), TD::sparse(combineShapes(shape, shape)));
-  EXPECT_EQ(value(D(x, x)), TD::sparseEye(combineShapes(shape, shape)));
-  EXPECT_EQ(value(D(y, x)), TD::sparse(combineShapes(shape2, shape)));
-  EXPECT_EQ(value(D(d, x)), TD::sparse(combineShapes(shape, shape)));
-  EXPECT_EQ(value(D(d, d)), TD::sparseEye(combineShapes(shape, shape)));
-
-  EXPECT_EQ(value(D(c, {x})), TD::sparse(combineShapes(shape, shape)));
-  EXPECT_EQ(value(D(x, {x})), TD::sparseEye(combineShapes(shape, shape)));
-  EXPECT_EQ(value(D(x, {x, x})),
-            TD::sparse(combineShapes(combineShapes(shape, shape), shape)));
-  EXPECT_EQ(value(D(y, {x})), TD::sparse(combineShapes(shape2, shape)));
-  EXPECT_EQ(value(D(d, {x})), TD::sparse(combineShapes(shape, shape)));
-  EXPECT_EQ(value(D(d, {d})), TD::sparseEye(combineShapes(shape, shape)));
-}
-
-TEST(AD, Exceptions) {
-  using TD = NeuralNet::Tensor<double>;
-  using AD = AutomaticDifferentiation::AD<TD>;
-  using NeuralNet::Shape;
+  using T = Alexandria::Tensor<double>;
+  using AD = Alexandria::AD<T>;
+  using Alexandria::Shape;
 
   auto shape = Shape({2});
 
-  auto c = AD(TD({5.0, 2.0}));
+  auto c = AD(T({5.0, 2.0}));
   auto x = AD("x", shape);
   auto y = AD("y", shape);
 
@@ -116,10 +86,9 @@ TEST(AD, Exceptions) {
 }
 
 TEST(AD, UnaryOp) {
-  using T = NeuralNet::Tensor<double>;
-  using AD = AutomaticDifferentiation::AD<T>;
-  using NeuralNet::combineShapes;
-  using NeuralNet::Shape;
+  using T = Alexandria::Tensor<double>;
+  using AD = Alexandria::AD<T>;
+  using Alexandria::Shape;
 
   auto shape = Shape({3});
   auto x = AD("x", shape);
@@ -152,10 +121,9 @@ TEST(AD, UnaryOp) {
 }
 
 TEST(AD, Op) {
-  using T = NeuralNet::Tensor<double>;
-  using AD = AutomaticDifferentiation::AD<T>;
-  using NeuralNet::combineShapes;
-  using NeuralNet::Shape;
+  using T = Alexandria::Tensor<double>;
+  using AD = Alexandria::AD<T>;
+  using Alexandria::Shape;
 
   auto shape = Shape({3});
 
@@ -188,36 +156,10 @@ TEST(AD, Op) {
             2.0 * T::sparseEye(combineShapes(shape, shape)));
   EXPECT_EQ(value(D(x - y - y + x, y)),
             -2.0 * T::sparseEye(combineShapes(shape, shape)));
-
-  /*
-  EXPECT_EQ(value(D(3.0 * x * x + 5.0, x).evaluateAt({x = 2})), 12);
-
-  EXPECT_EQ(value(D(x * y, x).evaluateAt({x = 3, y = 4})), 4);
-  EXPECT_EQ(value(D(x * y, y).evaluateAt({x = 3, y = 4})), 3);
-
-  EXPECT_EQ(value(D(x * (x + y), x).evaluateAt({x = 3, y = 4})), 10);
-
-  EXPECT_EQ(value(D(sin(y), y).evaluateAt({y = 1})), cos(1.0));
-  EXPECT_EQ(value(D(cos(y), y).evaluateAt({y = 1})), -sin(1.0));
-
-  EXPECT_EQ(value(D(cos(x * x), x).evaluateAt({x = 1})), -2.0 * sin(1.0));
-
-  EXPECT_EQ(value(D(exp(-x * x), x).evaluateAt({x = 1})), -2.0 * exp(-1.0));
-  EXPECT_EQ(value(D(log(x), x).evaluateAt({x = 1})), 1.0);
-  EXPECT_EQ(D(pow(x, 2.0), x).expression(), "2.000000 * x");
-  EXPECT_EQ(D(0.5 * pow(x, 2.0), x).expression(), "x");
-  EXPECT_EQ(D(pow(x, 1.0), x).expression(), "1.000000");
-  EXPECT_EQ(value(D(pow(5.0, x), x).evaluateAt({x = 1})), 5.0 * log(5.0));
-  EXPECT_EQ(value(D(pow(x, 2.0), x).evaluateAt({x = 1})), 2.0);
-
-  auto g = grad(sin(x * y), {x, y});
-  EXPECT_EQ(value(g[0].evaluateAt({x = 1, y = 2})), 2.0 * cos(2.0));
-  EXPECT_EQ(value(g[1].evaluateAt({x = 1, y = 2})), 1.0 * cos(2.0));
-  */
 }
 /*
 TEST(AD, Param) {
-  using AD = AutomaticDifferentiation::AD<double>;
+  using AD = Alexandria::AD<double>;
 
   auto x = AD("x");
   auto y = AD("y");

@@ -5,7 +5,7 @@
 
 #include "automatic_differentiation/ad_expression.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 template <typename T>
 class AD<T>::Const : public Expression {
@@ -49,6 +49,6 @@ std::string AD<T>::Const::expressionImpl() const {
   return sout.str();
 }
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria 
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_CONST_H_

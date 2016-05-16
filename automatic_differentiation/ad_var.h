@@ -9,7 +9,7 @@
 #include "automatic_differentiation/ad_const.h"
 #include "util/clonable.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 template <typename T>
 class AD<T>::Var : public Expression {
@@ -31,13 +31,13 @@ class AD<T>::Var : public Expression {
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
     return AD<T>(
-        identifier() == AutomaticDifferentiation::identifier<T>(var) ? 1 : 0);
+        identifier() == Alexandria::identifier<T>(var) ? 1 : 0);
   }
 
   AD<T> evaluateAtImpl(const VarValues& varValues) const final {
     for (const auto& varValue : varValues) {
       if (identifier() ==
-          AutomaticDifferentiation::identifier<T>(varValue.first)) {
+          Alexandria::identifier<T>(varValue.first)) {
         return AD<T>(varValue.second);
       }
     }
@@ -55,6 +55,6 @@ class AD<T>::Var : public Expression {
   std::string identifier_;
 };
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_VAR_H_

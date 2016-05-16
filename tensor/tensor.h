@@ -11,7 +11,7 @@
 #include "util/serializable.h"
 #include "util/util.h"
 
-namespace NeuralNet {
+namespace Alexandria {
 
 // This is a general tensor class.  As far as possible, transformations are
 // done in-place eagerly.
@@ -23,7 +23,7 @@ namespace NeuralNet {
 // Some operations have restrictions on the way data is accessed. This is to
 // make sure the class is used efficiently.
 template <typename T>
-class Tensor : public Util::Serializable {
+class Tensor : public Serializable {
  public:
   class Base;
   class Dense;
@@ -37,7 +37,7 @@ class Tensor : public Util::Serializable {
 
   virtual ~Tensor() {}
 
-  Tensor() :ptr_(std::make_unique<Dense>()) {}
+  Tensor() : ptr_(std::make_unique<Dense>()) {}
 
   Tensor(const Tensor& tensor) : ptr_(tensor.ptr_->clone()) {}
   Tensor& operator=(const Tensor& tensor) {
@@ -104,8 +104,8 @@ class Tensor : public Util::Serializable {
   }
 
  private:
-  using ArchiveIn = Util::ArchiveIn;
-  using ArchiveOut = Util::ArchiveOut;
+  using ArchiveIn = ArchiveIn;
+  using ArchiveOut = ArchiveOut;
 
   Tensor(Ptr ptr) : ptr_(std::move(ptr)) {}
 
@@ -129,7 +129,7 @@ bool operator==(const Tensor<T>& t1, const Tensor<T>& t2) {
     if (t1.shape() != t2.shape()) return false;
     auto accesser = Accesser(&t1.shape());
     for (const auto& address : accesser) {
-      if (!Util::almostEqual(t1[address], t2[address])) {
+      if (!almostEqual(t1[address], t2[address])) {
         result = false;
         break;
       }
@@ -238,7 +238,7 @@ Tensor<T> Tensor<T>::sparseEye(const Shape& shape, T value) {
 }
 
 template <typename T>
-void Tensor<T>::serializeInImpl(Util::ArchiveIn& ar, size_t /*version*/) {
+void Tensor<T>::serializeInImpl(ArchiveIn& ar, size_t /*version*/) {
   bool isDense = false;
   ar % isDense;
   ptr_ = std::make_unique<Dense>();
@@ -246,7 +246,7 @@ void Tensor<T>::serializeInImpl(Util::ArchiveIn& ar, size_t /*version*/) {
 }
 
 template <typename T>
-void Tensor<T>::serializeOutImpl(Util::ArchiveOut& ar) const {
+void Tensor<T>::serializeOutImpl(ArchiveOut& ar) const {
   bool isDense = this->isType<Dense>();
   ar % isDense % (*ptr_);
 }
@@ -278,7 +278,7 @@ Tensor<T> apply(Tensor<T> t, std::function<T(T)> fn) {
     std::transform(temp.cbegin(), temp.cend(), temp.begin(), fn);
   } else {
     auto& temp = t.template reference<typename Tensor<T>::Sparse>();
-    if (!Util::almostEqual(fn(0), 0)) {
+    if (!almostEqual(fn(0), 0)) {
       throw std::invalid_argument(
           "apply function for sparse tensors must obey f(0) == 0");
     }
@@ -316,7 +316,7 @@ Tensor<T> apply(Tensor<T> t1, const Tensor<T>& t2, std::function<T(T, T)> fn) {
     auto accesser = Accesser(&t1.shape());
     for (const auto& address : accesser) {
       auto result = fn(t1.at(address), t2.at(address));
-      auto zero = Util::almostEqual(result, 0);
+      auto zero = almostEqual(result, 0);
       if (zero) {
         temp1.zero(address);
       } else {
@@ -400,7 +400,7 @@ Tensor<T> multiply(const Tensor<T>& t1, const Indices index1,
     auto& ref2 = t2.template reference<typename Tensor<T>::Dense>();
     result = Tensor<T>(multiply<T>(ref1, index1, ref2, index2));
   } else {
-    throw Util::unimplemented_exception(
+    throw unimplemented_exception(
         "apply binary not implemented for type");
   }
 
@@ -438,7 +438,7 @@ Tensor<T> multiply(const Tensor<T>& t1, const Indices index1,
 template <typename T>
 Tensor<T> multiply(const Tensor<T>& t1, const Indices& indices1,
                    const Tensor<T>& t2, const Indices& indices2) {
-  using namespace Util;
+  using namespace Alexandria;
   using namespace std;
 
   Shape result_shape;
@@ -459,23 +459,21 @@ Tensor<T> multiply(const Tensor<T>& t1, const Indices& indices1,
 
     gather(indices1.cbegin(), indices1.cend(), result_address_iter->cbegin(),
            address1.begin(),
-           [](int index) { return index >= 0 ? index : Util::invalid_index; });
+           [](int index) { return index >= 0 ? index : invalid_index; });
 
     gather(indices2.cbegin(), indices2.cend(), result_address_iter->cbegin(),
            address2.begin(),
-           [](int index) { return index >= 0 ? index : Util::invalid_index; });
+           [](int index) { return index >= 0 ? index : invalid_index; });
 
     if (common_shape.nDimensions() > 0) {
       for (const auto& common_address : common_accesser) {
         gather(indices1.cbegin(), indices1.cend(), common_address.cbegin(),
-               address1.begin(), [](int idx) {
-                 return idx < 0 ? -idx - 1 : Util::invalid_index;
-               });
+               address1.begin(),
+               [](int idx) { return idx < 0 ? -idx - 1 : invalid_index; });
 
         gather(indices2.cbegin(), indices2.cend(), common_address.cbegin(),
-               address2.begin(), [](int idx) {
-                 return idx < 0 ? -idx - 1 : Util::invalid_index;
-               });
+               address2.begin(),
+               [](int idx) { return idx < 0 ? -idx - 1 : invalid_index; });
 
         element += t1[address1] * t2[address2];
       }

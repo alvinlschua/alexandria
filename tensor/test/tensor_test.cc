@@ -15,7 +15,7 @@
 #include "tensor/tensor_sparse.h"
 
 TEST(Tensor, Constructors) {
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   Tensor<double> t1({1.0, 2.0, 3.0});
@@ -64,8 +64,7 @@ TEST(Tensor, Constructors) {
 }
 
 TEST(Tensor, AddSubtract) {
-  using namespace Util;
-  using namespace NeuralNet;
+  using namespace Alexandria;
 
   auto t1 = Tensor<double>({{1, 3, 2}, {4, 1, 4}});
   auto t2 = t1 + Tensor<double>({{3, 1, 2}, {1, 4, 4}});
@@ -99,8 +98,7 @@ TEST(Tensor, AddSubtract) {
 }
 
 TEST(Tensor, Multiply) {
-  using namespace Util;
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   auto t1 = Tensor<double>({{1, 3, 2}, {4, 1, 4}});    // 2 x 3

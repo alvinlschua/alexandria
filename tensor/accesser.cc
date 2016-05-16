@@ -3,7 +3,7 @@
 
 #include "tensor/accesser.h"
 
-namespace NeuralNet {
+namespace Alexandria {
 
 Accesser::Accesser(const Shape* shape) : shape_(shape) {
   using namespace std;

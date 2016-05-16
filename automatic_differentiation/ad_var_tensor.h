@@ -4,13 +4,12 @@
 #include "automatic_differentiation/ad_expression_tensor.h"
 #include "tensor/tensor.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 template <typename T>
 class AD<T>::Var : public Expression {
  public:
   using VarValues = AD<T>::VarValues;
-  using Shape = typename AD<T>::Shape;
 
   static std::unique_ptr<Expression> make(const std::string& identifier,
                                           const Shape& shape) {
@@ -28,8 +27,7 @@ class AD<T>::Var : public Expression {
       : identifier_(identifier), shape_(shape) {}
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
-    using NeuralNet::combineShapes;
-    return AD<T>(identifier() == AutomaticDifferentiation::identifier<T>(var)
+    return AD<T>(identifier() == Alexandria::identifier<T>(var)
                      ? T::sparseEye(combineShapes(this->shape(), this->shape()))
                      : T::sparse(combineShapes(this->shape(),
                                                var.reference<Var>().shape())));
@@ -38,7 +36,7 @@ class AD<T>::Var : public Expression {
   AD<T> evaluateAtImpl(const VarValues& varValues) const final {
     for (const auto& varValue : varValues) {
       if (identifier() ==
-          AutomaticDifferentiation::identifier<T>(varValue.first)) {
+          Alexandria::identifier<T>(varValue.first)) {
         if (varValue.second.shape() != shape_) {
           throw std::invalid_argument("Shape of tensor provided for variable " +
                                       identifier() + " does not match");
@@ -65,6 +63,6 @@ class AD<T>::Var : public Expression {
   Shape shape_;
 };
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_VAR_TENSOR_H_

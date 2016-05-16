@@ -15,9 +15,9 @@ TEST(Rng, Serialize) {
   using std::ostringstream;
   using std::istringstream;
   using std::uniform_int_distribution;
-  using Util::ArchiveIn;
-  using Util::ArchiveOut;
-  using Util::rng;
+  using Alexandria::ArchiveIn;
+  using Alexandria::ArchiveOut;
+  using Alexandria::rng;
 
   // do this to start form some intermediate state
   rng().generate(uniform_int_distribution<int>(-2, 4), 100);

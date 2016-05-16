@@ -3,7 +3,7 @@
 
 #include <memory>
 
-namespace Util {
+namespace Alexandria {
 
 // Clonable interface.
 //
@@ -23,6 +23,6 @@ class Clonable {
   virtual std::unique_ptr<T> cloneImpl() const = 0;
 };
 
-}  // namespace Util
+}  // namespace Alexandria
 
 #endif  // UTIL_CLONABLE_H_

@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace Util {
+namespace Alexandria {
 
 /* Archive class for serialisation. */
 class ArchiveOut {
@@ -154,6 +154,6 @@ ArchiveOut& ArchiveOut::operator%(const long double& value);
 template <>
 ArchiveOut& ArchiveOut::operator%(const std::string& value);
 
-}  // namespace Util
+}  // namespace Alexandria
 
 #endif  // UTIL_ARCHIVE_OUT_H_

@@ -1,6 +1,6 @@
 #include "util/archive_out.h"
 
-namespace Util {
+namespace Alexandria {
 
 template <>
 ArchiveOut& ArchiveOut::operator%(const bool& value) {
@@ -88,4 +88,4 @@ ArchiveOut& ArchiveOut::operator%(const std::string& value) {
   return *this;
 }
 
-}  // namespace Util
+}  // namespace Alexandria

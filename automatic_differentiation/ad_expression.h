@@ -7,11 +7,11 @@
 #include "automatic_differentiation/ad.h"
 #include "util/clonable.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 // Abstract expression class.
 template <typename T>
-class AD<T>::Expression : public Util::Clonable<AD<T>::Expression> {
+class AD<T>::Expression : public Clonable<AD<T>::Expression> {
  public:
   using VarValues = AD<T>::VarValues;
 
@@ -51,6 +51,6 @@ class AD<T>::Expression : public Util::Clonable<AD<T>::Expression> {
   virtual std::string expressionImpl() const = 0;
 };
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  //  AUTOMATIC_DIFFERENTIATION_AD_EXPRESSION_H_

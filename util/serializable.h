@@ -4,7 +4,7 @@
 #include "util/archive_in.h"
 #include "util/archive_out.h"
 
-namespace Util {
+namespace Alexandria {
 
 // Serializable interface.
 //
@@ -40,6 +40,6 @@ class Serializable {
   virtual size_t serializeOutVersionImpl() const = 0;
 };
 
-}  // namespace Util
+}  // namespace Alexandria
 
 #endif  // UTIL_SERIALIZABLE_H_

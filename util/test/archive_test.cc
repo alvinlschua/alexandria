@@ -17,8 +17,8 @@ TEST(Archive, Primitive) {
   using std::ostringstream;
   using std::istringstream;
   using std::string;
-  using Util::ArchiveOut;
-  using Util::ArchiveIn;
+  using Alexandria::ArchiveOut;
+  using Alexandria::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);
@@ -128,8 +128,8 @@ TEST(Archive, Primitive) {
 TEST(Archive, Array) {
   using std::ostringstream;
   using std::istringstream;
-  using Util::ArchiveOut;
-  using Util::ArchiveIn;
+  using Alexandria::ArchiveOut;
+  using Alexandria::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);
@@ -148,8 +148,8 @@ TEST(Archive, Array) {
 TEST(Archive, Vector) {
   using std::ostringstream;
   using std::istringstream;
-  using Util::ArchiveOut;
-  using Util::ArchiveIn;
+  using Alexandria::ArchiveOut;
+  using Alexandria::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);
@@ -175,8 +175,8 @@ TEST(Archive, Vector) {
 TEST(Archive, UnorderedSet) {
   using std::ostringstream;
   using std::istringstream;
-  using Util::ArchiveOut;
-  using Util::ArchiveIn;
+  using Alexandria::ArchiveOut;
+  using Alexandria::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);
@@ -195,8 +195,8 @@ TEST(Archive, UnorderedSet) {
 TEST(Archive, UnorderedMap) {
   using std::ostringstream;
   using std::istringstream;
-  using Util::ArchiveOut;
-  using Util::ArchiveIn;
+  using Alexandria::ArchiveOut;
+  using Alexandria::ArchiveIn;
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);

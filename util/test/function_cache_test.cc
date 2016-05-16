@@ -12,7 +12,7 @@
 #include "util/function_cache.h"
 
 TEST(FunctionCache, Cache) {
-  using Util::FunctionCache;
+  using Alexandria::FunctionCache;
 
   FunctionCache<int, std::vector<int>> fn(
       [](int value) { return std::vector<int>(10, value); });

@@ -5,7 +5,7 @@
 
 #include "tensor/shape.h"
 
-namespace NeuralNet {
+namespace Alexandria {
 
 // forward declare
 class Accesser;

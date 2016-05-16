@@ -3,7 +3,7 @@
 #include "tensor/accesser.h"
 #include "tensor/address_iterator.h"
 
-namespace NeuralNet {
+namespace Alexandria {
 
 AddressIterator::AddressIterator(const Accesser& accessor, size_t index)
     : shape_(accessor.shape_),
@@ -28,4 +28,4 @@ AddressIterator& AddressIterator::operator++() {
   }
   return *this;
 }
-}  // namespace NeuralNet
+}  // namespace Alexandria

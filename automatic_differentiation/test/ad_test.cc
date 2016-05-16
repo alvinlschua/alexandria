@@ -16,7 +16,7 @@
 #pragma clang diagnostic pop
 
 TEST(AD, Basic) {
-  using AD = AutomaticDifferentiation::AD<double>;
+  using AD = Alexandria::AD<double>;
   AD c(5.0);
 
   AD x("x");
@@ -55,7 +55,7 @@ TEST(AD, Basic) {
 }
 
 TEST(AD, ConstAndVar) {
-  using AD = AutomaticDifferentiation::AD<double>;
+  using AD = Alexandria::AD<double>;
   auto c = AD(5.0);
   auto x = AD("x");
   auto y = AD("y");
@@ -71,7 +71,7 @@ TEST(AD, ConstAndVar) {
 }
 
 TEST(AD, Exceptions) {
-  using AD = AutomaticDifferentiation::AD<double>;
+  using AD = Alexandria::AD<double>;
   auto c = AD(5.0);
   auto x = AD("x");
   auto y = AD("y");
@@ -91,7 +91,7 @@ TEST(AD, Exceptions) {
 }
 
 TEST(AD, Op) {
-  using AD = AutomaticDifferentiation::AD<double>;
+  using AD = Alexandria::AD<double>;
   auto x = AD("x");
   auto y = AD("y");
   auto z = AD("z");
@@ -145,7 +145,7 @@ TEST(AD, Op) {
 }
 
 TEST(AD, Param) {
-  using AD = AutomaticDifferentiation::AD<double>;
+  using AD = Alexandria::AD<double>;
 
   auto x = AD("x");
   auto y = AD("y");

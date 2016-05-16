@@ -12,8 +12,7 @@
 #include "tensor/accesser.h"
 
 TEST(Accesser, Basic1) {
-  using namespace Util;
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   Shape shape({2, 1, 4});
@@ -59,7 +58,7 @@ TEST(Accesser, Basic1) {
 }
 
 TEST(Accesser, increment) {
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   Shape shape({3, 1, 2});

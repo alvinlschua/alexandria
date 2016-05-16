@@ -12,7 +12,7 @@
 #include "glog/logging.h"
 #pragma clang diagnostic pop
 
-namespace NeuralNet {
+namespace Alexandria {
 
 // The tensor shape.
 //
@@ -20,7 +20,7 @@ namespace NeuralNet {
 // Shape index refers associated with the index associate with dimension.
 // And the address refers a accessing elements.
 
-class Shape : public Util::Serializable {
+class Shape : public Serializable {
  public:
   using Dims = std::vector<size_t>;
   using const_iterator = Dims::const_iterator;
@@ -50,8 +50,8 @@ class Shape : public Util::Serializable {
   const_reverse_iterator crend() const { return dims_.crend(); }
 
  private:
-  using ArchiveIn = Util::ArchiveIn;
-  using ArchiveOut = Util::ArchiveOut;
+  using ArchiveIn = ArchiveIn;
+  using ArchiveOut = ArchiveOut;
   void serializeInImpl(ArchiveIn& ar, size_t /*version*/) final { ar % dims_; }
   void serializeOutImpl(ArchiveOut& ar) const final { ar % dims_; }
   size_t serializeOutVersionImpl() const final { return 0ul; }
@@ -84,7 +84,7 @@ using Address = std::vector<size_t>;
 
 struct AddressHash {
   uint64_t operator()(const Address& address) const {
-    return Util::hash64(address.begin(), address.end());
+    return hash64(address.begin(), address.end());
   }
 };
 
@@ -95,5 +95,5 @@ struct AddressCompare {
   }
 };
 
-}  // NeuralNet
+}  // Alexandria
 #endif

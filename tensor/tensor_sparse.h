@@ -9,7 +9,7 @@
 #include "tensor/tensor_base.h"
 #include "util/util.h"
 
-namespace NeuralNet {
+namespace Alexandria {
 
 // This is a general tensor class.  As far as possible, transformations are
 // done in-place eagerly.
@@ -72,18 +72,18 @@ class Tensor<T>::Sparse : public Base {
   // Helper to remove zeros.
   void shrink() {
     for (auto iter = begin(); iter != end();) {
-      if (Util::almostEqual(iter->second, 0))
+      if (almostEqual(iter->second, 0))
         iter = data_.erase(iter);
       else
         ++iter;
     }
   }
 
-  void serializeInImpl(Util::ArchiveIn& ar, size_t /*version*/) final {
+  void serializeInImpl(ArchiveIn& ar, size_t /*version*/) final {
     ar % shape_ % data_;
   }
 
-  void serializeOutImpl(Util::ArchiveOut& ar) const final {
+  void serializeOutImpl(ArchiveOut& ar) const final {
     ar % shape_ % data_;
   }
   size_t serializeOutVersionImpl() const final { return 0ul; }
@@ -95,54 +95,7 @@ class Tensor<T>::Sparse : public Base {
   Shape shape_;
   Data data_;
 };
-/*
-  // Makes and eye with shape x shape, so that e_ij,lm = delta_il delta_jm
-  static SparseTensor<T> outerProductZeros(const Shape& shape) {
-    Indices index1(shape.nDimensions());
-    Indices index2(shape.nDimensions());
 
-    std::iota(index1.begin(), index1.end(), 0);
-    std::iota(index2.begin(), index2.end(), shape.nDimensions());
-
-    Shape resultShape;
-    std::tie(resultShape, std::ignore) =
-        multiplyShapes(shape, index1, shape, index2);
-
-    return SparseTensor<T>(resultShape);
-  }
-
-  // Makes an eye with shape x shape, so that e_ij,lm = delta_il delta_jm
-  static SparseTensor<T> outerProductEye(const Shape& shape) {
-    Indices index1(shape.nDimensions());
-    Indices index2(shape.nDimensions());
-
-    std::iota(index1.begin(), index1.end(), 0);
-    std::iota(index2.begin(), index2.end(), shape.nDimensions());
-
-    Shape resultShape;
-    std::tie(resultShape, std::ignore) =
-        multiplyShapes(shape, index1, shape, index2);
-
-    SparseTensor<T> result(resultShape);
-    Addresser addresser(&shape);
-    Address address(shape.nDimensions(), 0);
-
-    auto size = nElements(shape);
-    for (auto index = 0ul; index < size;
-         ++index, address = addresser.increment(std::move(address))) {
-      auto resultAddress = address;
-      resultAddress.resize(2 * shape.nDimensions());
-
-      std::copy(resultAddress.cbegin(), resultAddress.cend(),
-                resultAddress.begin() + static_cast<int>(shape.nDimensions()));
-
-      result[resultAddress] = 1;
-    }
-
-    return result;
-  }
-  */
-
-}  // NeuralNet
+}  // Alexandria
 
 #endif

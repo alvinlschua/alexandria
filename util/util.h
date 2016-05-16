@@ -12,7 +12,7 @@
 #include "glog/logging.h"
 #pragma clang diagnostic pop
 
-namespace Util {
+namespace Alexandria {
 
 inline uint64_t hashCombine(uint64_t seed, uint64_t hash_value) {
   return seed ^ (hash_value + 0x9e3779b9 + (seed << 6) + (seed >> 2));
@@ -128,6 +128,6 @@ class unimplemented_exception : public std::exception {
   std::string msg_;
 };
 
-}  // namespace Util
+}  // namespace Alexandria
 
 #endif  // UTIL_UTIL_H_

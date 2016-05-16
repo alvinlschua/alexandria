@@ -7,7 +7,7 @@
 #include "util/serializable.h"
 #include "util/clonable.h"
 
-namespace NeuralNet {
+namespace Alexandria {
 
 // This is a general tensor class.  As far as possible, transformations are
 // done in-place eagerly.
@@ -19,8 +19,8 @@ namespace NeuralNet {
 // Some operations have restrictions on the way data is accessed. This is to
 // make sure the class is used efficiently.
 template <typename T>
-class Tensor<T>::Base : public Util::Serializable,
-                        public Util::Clonable<Tensor<T>::Base> {
+class Tensor<T>::Base : public Serializable,
+                        public Clonable<Tensor<T>::Base> {
  public:
   virtual ~Base() {}
 

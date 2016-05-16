@@ -10,7 +10,7 @@
 #include "automatic_differentiation/ad_const.h"
 #include "util/clonable.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 template <typename T>
 class AD<T>::Unary : public Expression {
@@ -247,6 +247,6 @@ AD<T> log(const AD<T>& ad) {
   return Log<T>::makeAD(ad);
 }
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_UNARY_H_

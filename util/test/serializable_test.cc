@@ -11,7 +11,7 @@
 
 #include "util/serializable.h"
 
-class TestClass : public Util::Serializable {
+class TestClass : public Alexandria::Serializable {
  public:
   TestClass() : a_(0), b_('\0') {}
   TestClass(int a, char b) : a_(a), b_(b) {}
@@ -20,10 +20,10 @@ class TestClass : public Util::Serializable {
   char b() const { return b_; }
 
  private:
-  void serializeInImpl(Util::ArchiveIn& ar, size_t /*version*/) final {
+  void serializeInImpl(Alexandria::ArchiveIn& ar, size_t /*version*/) final {
     ar % a_ % b_;
   }
-  void serializeOutImpl(Util::ArchiveOut& ar) const final { ar % a_ % b_; }
+  void serializeOutImpl(Alexandria::ArchiveOut& ar) const final { ar % a_ % b_; }
   size_t serializeOutVersionImpl() const { return 0; }
 
   int a_;
@@ -33,8 +33,8 @@ class TestClass : public Util::Serializable {
 TEST(Serializable, Class) {
   using std::istringstream;
   using std::ostringstream;
-  using Util::ArchiveIn;
-  using Util::ArchiveOut;
+  using Alexandria::ArchiveIn;
+  using Alexandria::ArchiveOut;
 
   // do this to start form some intermediate state
   TestClass class_out(20, 'd');

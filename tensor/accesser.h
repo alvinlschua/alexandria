@@ -7,7 +7,7 @@
 #include "tensor/address_iterator.h"
 #include "tensor/shape.h"
 
-namespace NeuralNet {
+namespace Alexandria {
 
 // This class relates the shape of the tensor to elements in a flat array.
 class Accesser {
@@ -42,5 +42,5 @@ class Accesser {
   const Shape* shape_;
 };
 
-}  // namespace NeuralNet
+}  // namespace Alexandria
 #endif

@@ -5,12 +5,12 @@
 
 #include "automatic_differentiation/ad_expression_tensor.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
+
 template <typename T>
 class AD<T>::Const : public Expression {
  public:
   using VarValues = AD::VarValues;
-  using Shape = typename AD<T>::Shape;
 
   static std::unique_ptr<Expression> make(const T& value) {
     return Const(value).clone();
@@ -26,7 +26,6 @@ class AD<T>::Const : public Expression {
   explicit Const(const T& value) : value_(value) {}
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
-    using NeuralNet::combineShapes;
     return AD<T>(
         T::sparse(combineShapes(this->shape(), var.reference<Var>().shape())));
   }
@@ -55,6 +54,6 @@ std::string AD<T>::Const::expressionImpl() const {
   return sout.str();
 }
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_CONST_TENSOR_H_

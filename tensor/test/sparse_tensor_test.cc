@@ -14,7 +14,7 @@
 #pragma clang diagnostic pop
 
 TEST(Tensor, Constructors) {
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   auto t1 = Tensor<double>::sparse(Shape({3}));
@@ -66,7 +66,7 @@ TEST(Tensor, Constructors) {
 }
 
 TEST(Tensor, Op) {
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   auto t1 = Tensor<double>::sparse(Shape({3}));

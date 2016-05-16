@@ -6,7 +6,7 @@
 #include "glog/logging.h"
 #pragma clang diagnostic pop
 
-namespace Util {
+namespace Alexandria {
 
 // Generic Singleton class.
 //
@@ -52,6 +52,6 @@ T& Singleton<T>::instance() {
 template <typename T>
 std::unique_ptr<T> Singleton<T>::m_instance = std::unique_ptr<T>();
 
-}  // namespace Util
+}  // namespace Alexandria
 
 #endif  // UTIL_SINGLETON_H_

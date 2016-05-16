@@ -2,7 +2,7 @@
 
 #include "tensor/shape.h"
 
-namespace NeuralNet {
+namespace Alexandria {
 
 Shape::Shape(const Dims& dims) : dims_(dims) {
   if (!std::all_of(dims_.cbegin(), dims_.cend(),
@@ -31,4 +31,4 @@ std::ostream& operator<<(std::ostream& out, const Shape& s) {
   return out;
 }
 
-}  // namespace NeuralNet
+}  // namespace Alexandria

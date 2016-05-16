@@ -6,7 +6,7 @@
 
 #include "glog/logging.h"
 
-namespace Util {
+namespace Alexandria {
 
 // A function cache to recall results of functions with expansive calculations.
 // The input must have a hash.
@@ -55,6 +55,6 @@ auto FunctionCache<TInput, TResult, THash>::operator()(const Input& input)
   return iter->second;
 }
 
-}  // namespace Util
+}  // namespace Alexandria
 
 #endif  // UTIL_FUNCTION_CACHE_H_

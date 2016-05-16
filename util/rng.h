@@ -9,7 +9,7 @@
 #include "util/singleton.h"
 #include "util/serializable.h"
 
-namespace Util {
+namespace Alexandria {
 
 // Random number generator singleton.
 class Rng : public Singleton<Rng>, public Serializable {
@@ -48,6 +48,6 @@ Rng::result_type<TDistribution> Rng::generate(TDistribution distribution,
 
 inline Rng& rng() { return Rng::instance(); }
 
-}  // namespace Util
+}  // namespace Alexandria
 
 #endif  // UTIL_RNG_H_

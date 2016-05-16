@@ -1,14 +1,13 @@
-#ifndef NUMERICAL_RECIPES_INTEGRATION_QUADRATURE_H_
-#define NUMERICAL_RECIPES_INTEGRATION_QUADRATURE_H_
+#ifndef INTEGRATION_QUADRATURE_H_
+#define INTEGRATION_QUADRATURE_H_
 
 #include <cmath>
-#include <vector>
 #include <limits>
+#include <vector>
 
 #include "util/util.h"
 
-namespace NumericalRecipes {
-namespace Integration {
+namespace Alexandria {
 
 // Quadrature integration method interface.
 template <typename T>
@@ -72,7 +71,7 @@ class QuadratureTemplate : public Quadrature<T> {
 };
 
 template <typename T>
-auto QuadratureTemplate<T>::weightsImpl() const -> const Weights & {
+auto QuadratureTemplate<T>::weightsImpl() const -> const Weights& {
   // TODO(alvin): make this more efficient by not double counting.
   if (weights_cache_.empty()) {
     weights_cache_.reserve(weightTemplate_.size() * this->nUnits());
@@ -103,7 +102,7 @@ auto QuadratureTemplate<T>::valuesImpl(const std::function<T(T)>& f, T x_min,
     const auto x_start = x_min + index * h;
     for (const auto& lambda : lambdaTemplate_) {
       const auto x = x_start + (lambda + 1.0) / 2.0 * h;
-      if (!Util::almostEqual(x, x_memoized)) {
+      if (!almostEqual(x, x_memoized)) {
         x_memoized = x;
         f_memoized = f(x);
       }
@@ -162,7 +161,6 @@ class GaussLegendre4 : public QuadratureTemplate<T> {
              -sqrt(3.0 / 7.0 + 2.0 / 7.0 * sqrt(6.0 / 5.0))}) {}
 };
 
-}  // namespace Integration
-}  // namespace NumericalRecipes
+}  // namespace Alexandria
 
-#endif  // NUMERICAL_RECIPES_INTEGRATION_QUADRATURE_H_
+#endif  // INTEGRATION_QUADRATURE_H_

@@ -9,7 +9,7 @@
 #include "automatic_differentiation/ad_const.h"
 #include "util/clonable.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 template <typename T>
 class AD<T>::Param : public Expression {
@@ -33,7 +33,7 @@ class AD<T>::Param : public Expression {
       : identifier_(identifier), value_(std::make_shared<T>(value)) {}
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
-    return AD<T>(identifier() == AutomaticDifferentiation::identifier(var) ? 1
+    return AD<T>(identifier() == Alexandria::identifier(var) ? 1
                                                                            : 0);
   }
 
@@ -53,6 +53,6 @@ class AD<T>::Param : public Expression {
   std::shared_ptr<T> value_;
 };
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_PARAM_H_

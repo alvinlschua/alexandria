@@ -2,7 +2,7 @@
 #include "tensor/shape.h"
 #include <vector>
 
-namespace NeuralNet {
+namespace Alexandria {
 
 namespace {
 Shape resultShape(const Shape& shape1, const Indices& indices1,

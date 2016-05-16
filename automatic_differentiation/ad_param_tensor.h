@@ -9,13 +9,12 @@
 #include "automatic_differentiation/ad_tensor.h"
 #include "util/clonable.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 template <typename T>
 class AD<T>::Param : public Expression {
  public:
   using VarValues = AD<T>::VarValues;
-  using Shape = AD<T>::Shape;
 
   static std::unique_ptr<Expression> make(const std::string& identifier,
                                           const T& value) {
@@ -34,9 +33,8 @@ class AD<T>::Param : public Expression {
       : identifier_(identifier), value_(std::make_shared<T>(value)) {}
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
-    using NeuralNet::combineShapes;
     return AD<T>(
-        identifier() == AutomaticDifferentiation::identifier(var)
+        identifier() == Alexandria::identifier(var)
             ? T::sparseEye(combineShapes(this->shape(), this->shape()))
             : T::sparse(combineShapes(this->shape(), var.reference<Var>().shape())));
   }
@@ -59,6 +57,6 @@ class AD<T>::Param : public Expression {
   std::shared_ptr<T> value_;
 };
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_PARAM_TENSOR_H_

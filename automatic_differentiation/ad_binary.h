@@ -6,13 +6,13 @@
 #include <string>
 
 #include "automatic_differentiation/ad.h"
+#include "automatic_differentiation/ad_const.h"
 #include "automatic_differentiation/ad_expression.h"
 #include "automatic_differentiation/ad_var.h"
-#include "automatic_differentiation/ad_const.h"
 #include "util/clonable.h"
 #include "util/util.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 template <typename T>
 class AD<T>::Binary : public Expression {
@@ -260,7 +260,7 @@ AD<T> Plus<T>::simplifyImpl() const {
   }
 
   // 0 + Expression -> -Expression
-  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
+  if (term1.template isType<Const>() && almostEqual(value(term1), 0)) {
     return term2;
   }
 
@@ -309,12 +309,12 @@ AD<T> Minus<T>::simplifyImpl() const {
   }
 
   // 0 - Expression -> -Expression
-  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
+  if (term1.template isType<Const>() && almostEqual(value(term1), 0)) {
     return -term2;
   }
 
   // Expression - 0 -> Expression
-  if (term2.template isType<Const>() && Util::almostEqual(value(term2), 0)) {
+  if (term2.template isType<Const>() && almostEqual(value(term2), 0)) {
     return term1;
   }
 
@@ -368,12 +368,12 @@ AD<T> Times<T>::simplifyImpl() const {
   }
 
   // 0 * Exression -> 0
-  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
+  if (term1.template isType<Const>() && almostEqual(value(term1), 0)) {
     return AD<T>(0);
   }
 
   // 1 * Exression -> Expression
-  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 1)) {
+  if (term1.template isType<Const>() && almostEqual(value(term1), 1)) {
     return term2;
   }
 
@@ -455,10 +455,10 @@ AD<T> Pow<T>::simplifyImpl() const {
 
   // Expression / AD<T>::Const -> AD<T>::Const * Expression;
   if (term2.template isType<Const>()) {
-    if (Util::almostEqual(value(term2), 1)) {
+    if (almostEqual(value(term2), 1)) {
       return term1;
     }
-    if (Util::almostEqual(value(term2), 0)) {
+    if (almostEqual(value(term2), 0)) {
       return AD<T>(1);
     }
   }
@@ -479,6 +479,6 @@ AD<T> pow(const T& value, const AD<T>& ad) {
   return Pow<T>::makeAD(AD<T>(value), ad);
 }
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_BINARY_H_

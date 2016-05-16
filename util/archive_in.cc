@@ -1,6 +1,6 @@
 #include "util/archive_in.h"
 
-namespace Util {
+namespace Alexandria {
 
 template <>
 ArchiveIn& ArchiveIn::operator%(bool& value) {
@@ -90,4 +90,4 @@ ArchiveIn& ArchiveIn::operator%(std::string& value) {
   return *this;
 }
 
-}  // namespace Util
+}  // namespace Alexandria

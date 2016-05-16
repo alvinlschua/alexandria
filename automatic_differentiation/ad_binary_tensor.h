@@ -12,14 +12,12 @@
 #include "util/clonable.h"
 #include "util/util.h"
 
-namespace AutomaticDifferentiation {
+namespace Alexandria {
 
 template <typename T>
 class AD<T>::Binary : public Expression {
  public:
   using VarValues = AD<T>::VarValues;
-  using Shape = typename AD<T>::Shape;
-  using Indices = NeuralNet::Indices;
 
   Binary(const AD<T>& term1, const AD<T>& term2)
       : term1_(term1), term2_(term2) {}
@@ -127,8 +125,6 @@ AD<T> AD<T>::Binary::evaluateAtImpl(const VarValues& varValues) const {
 template <typename T>
 class Plus : public AD<T>::Binary {
  public:
-  using Shape = typename AD<T>::Shape;
-
   Plus(const Plus&) = default;
   Plus& operator=(const Plus&) = default;
   virtual ~Plus() {}
@@ -170,8 +166,6 @@ class Plus : public AD<T>::Binary {
 template <typename T>
 class Minus : public AD<T>::Binary {
  public:
-  using Shape = typename AD<T>::Shape;
-
   Minus(const Minus&) = default;
   Minus& operator=(const Minus&) = default;
   virtual ~Minus() {}
@@ -214,9 +208,6 @@ class Minus : public AD<T>::Binary {
 template <typename T>
 class Multiply : public AD<T>::Binary {
  public:
-  using Shape = typename AD<T>::Shape;
-  using Indices = NeuralNet::Indices;
-
   Multiply(const Multiply&) = default;
   Multiply& operator=(const Multiply&) = default;
   virtual ~Multiply() {}
@@ -233,8 +224,8 @@ class Multiply : public AD<T>::Binary {
   Multiply(const AD<T>& term1, const Indices& indices1, const AD<T>& term2,
            const Indices& indices2)
       : AD<T>::Binary(term1, term2), indices1_(indices1), indices2_(indices2) {
-    std::tie(resultShape_, std::ignore) = NeuralNet::multiplyShapes(
-        term1.shape(), indices1, term2.shape(), indices2);
+    std::tie(resultShape_, std::ignore) =
+        multiplyShapes(term1.shape(), indices1, term2.shape(), indices2);
   }
 
   T f(const T& value1, const T& value2) const final {
@@ -242,8 +233,8 @@ class Multiply : public AD<T>::Binary {
     // We return sparse if possible.
     return (value1.template isType<typename T::Dense>() &&
             value2.template isType<typename T::Sparse>())
-               ? NeuralNet::multiply(value2, indices2(), value1, indices1())
-               : NeuralNet::multiply(value1, indices1(), value2, indices2());
+               ? multiply(value2, indices2(), value1, indices1())
+               : multiply(value1, indices1(), value2, indices2());
   }
   AD<T> dF1() const final {
     auto eyeIndex = Indices(2 * indices1().size());
@@ -378,7 +369,7 @@ template <typename T>
 AD<T> operator*(const typename T::ValueType& scalar, const AD<T>& term) {
   auto scalarEye =
       T::sparseEye(combineShapes(term.shape(), term.shape()), scalar);
-  NeuralNet::Indices indices1(2 * term.shape().nDimensions());
+  Indices indices1(2 * term.shape().nDimensions());
 
   for (auto index = 0ul; index < indices1.size(); ++index) {
     indices1[index] =
@@ -387,7 +378,7 @@ AD<T> operator*(const typename T::ValueType& scalar, const AD<T>& term) {
                              : term.shape().nDimensions() - index - 1);
   }
 
-  NeuralNet::Indices indices2(term.shape().nDimensions());
+  Indices indices2(term.shape().nDimensions());
   for (auto index = 0ul; index < indices2.size(); ++index) {
     indices2[index] = static_cast<int>(-index - 1);
   }
@@ -430,11 +421,11 @@ AD<T> Multiply<T>::simplifyImpl() const {
 }
 
 template <typename T>
-AD<T> multiply(const AD<T>& term1, const NeuralNet::Indices& indices1,
-               const AD<T>& term2, const NeuralNet::Indices& indices2) {
+AD<T> multiply(const AD<T>& term1, const Indices& indices1, const AD<T>& term2,
+               const Indices& indices2) {
   return Multiply<T>::makeAD(term1, indices1, term2, indices2);
 }
 
-}  // namespace AutomaticDifferentiation
+}  // namespace Alexandria
 
 #endif  // AUTOMATIC_DIFFERENTIATION_AD_BINARY_H_

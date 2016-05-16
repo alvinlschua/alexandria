@@ -10,8 +10,8 @@
 #include "util/util.h"
 #include <vector>
 
-TEST(Util, Gather) {
-  using Util::gather;
+TEST(Alexandria, Gather) {
+  using Alexandria::gather;
 
   std::vector<int> x({1, 2, 3, 4});
   std::vector<int> indices({0, 0, 1, 3});
@@ -29,14 +29,14 @@ TEST(Util, Gather) {
   std::vector<int> result2({5, 6, 7, 8});
 
   gather(indices3.cbegin(), indices3.cend(), x.cbegin(), result2.begin(),
-         [](int index) { return index >= 0 ? index : Util::invalid_index; });
+         [](int index) { return index >= 0 ? index : Alexandria::invalid_index; });
   EXPECT_EQ(result2, std::vector<int>({1, 6, 2, 4}));
 
   // TODO(alvin): add tests for filters
 }
 
-TEST(Util, Scatter) {
-  using Util::scatter;
+TEST(Alexandria, Scatter) {
+  using Alexandria::scatter;
 
   std::vector<double> x({1, 2, 3, 4});
   std::vector<size_t> indices({0, 0, 1, 3});

@@ -12,8 +12,7 @@
 #include "tensor/shape.h"
 
 TEST(Shape, Basic) {
-  using namespace Util;
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   Shape shape({2, 1, 1, 2});
@@ -31,8 +30,7 @@ TEST(Shape, Basic) {
 }
 
 TEST(Shape, Serialize) {
-  using namespace Util;
-  using namespace NeuralNet;
+  using namespace Alexandria;
   using namespace std;
 
   ostringstream sout;

@@ -4,7 +4,7 @@
 #include "tensor/shape.h"
 #include <tuple>
 
-namespace NeuralNet {
+namespace Alexandria {
 
 // Are indices unique?
 bool indicesUnique(Indices indices);

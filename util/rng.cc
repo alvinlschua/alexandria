@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace Util {
+namespace Alexandria {
 
 void Rng::serializeInImpl(ArchiveIn& ar, size_t /*version*/) {
   std::lock_guard<std::mutex> lock(mutex_);
@@ -19,4 +19,4 @@ void Rng::serializeOutImpl(ArchiveOut& ar) const {
   ar % sout.str();
 }
 
-}  // namespace Util
+}  // namespace Alexandria
