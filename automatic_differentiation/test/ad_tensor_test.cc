@@ -87,13 +87,6 @@ TEST(AD, UnaryOp) {
   auto x = AD("x", shape);
   auto eye = T::sparseEye(combineShapes(shape, shape));
 
-  /*
-  EXPECT_EQ(value(diagonal(x).evaluateAt({x = T({1, 2, 3})})),
-            T({{1, 0, 0}, {0, 2, 0}, {0, 0, 3}}));
-  EXPECT_EQ(value(D(diagonal(x), x).evaluateAt({x = T({1, 2, 3})})),
-            multiply(eye, {0, 1}, eye, {1, 2}));
-	    */
-
   auto xx = reshape(x, Shape({1, 3}));
   EXPECT_EQ(value(xx.evaluateAt({x = T({1, 2, 3})})),
             T(T::Data2D({{1, 2, 3}})));
@@ -113,6 +106,17 @@ TEST(AD, UnaryOp) {
             T({{1.0 / (1.0 + exp(1)) * (1.0 - 1.0 / (1.0 + exp(1))), 0, 0},
                {0, 1.0 / 4.0, 0},
                {0, 0, 1.0 / (1.0 + exp(-1)) * (1.0 - 1.0 / (1.0 + exp(-1)))}}));
+
+  EXPECT_EQ(value(log(x).evaluateAt({x = T({0.1, 1, 2})})),
+            T({log(0.1), log(1), log(2)}));
+  EXPECT_EQ(value(D(log(x), x).evaluateAt({x = T({0.1, 1, 2})})),
+            T({{1 / 0.1, 0, 0}, {0, 1.0, 0}, {0, 0, 0.5}}));
+
+  EXPECT_EQ(value(reciprocal(x).evaluateAt({x = T({0.1, 1, 2})})),
+            T({1.0 / 0.1, 1, 0.5}));
+
+  EXPECT_EQ(value(D(reciprocal(x), x).evaluateAt({x = T({0.1, 1, 2})})),
+            T({{-1.0 / 0.01, 0, 0}, {0, -1.0, 0}, {0, 0, -0.25}}));
 }
 
 TEST(AD, Op) {

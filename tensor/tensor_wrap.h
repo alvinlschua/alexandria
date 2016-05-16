@@ -128,8 +128,9 @@ bool operator==(const Tensor<T>& t1, const Tensor<T>& t2) {
       t2.template isType<typename Tensor<T>::Dense>()) {
     auto x = t1.template reference<typename Tensor<T>::Dense>();
     auto y = t2.template reference<typename Tensor<T>::Dense>();
-    result =
-        x.shape() == y.shape() && std::equal(x.cbegin(), x.cend(), y.cbegin());
+    result = x.shape() == y.shape() &&
+             std::equal(x.cbegin(), x.cend(), y.cbegin(),
+                        [](T v1, T v2) { return almostEqual(v1, v2); });
   } else {
     if (t1.shape() != t2.shape()) return false;
     auto accesser = Accesser(&t1.shape());
