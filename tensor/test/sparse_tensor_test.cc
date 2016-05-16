@@ -92,6 +92,36 @@ TEST(Tensor, Op) {
             Tensor<double>({1, 2, 3}));
 }
 
+TEST(Tensor, Serialize) {
+  using namespace Alexandria;
+  using namespace std;
+
+  auto t1 = Tensor<double>::sparse(Shape({3}));
+  t1[{0}] = 4;
+  auto t2 = Tensor<double>::sparse(Shape({3}));
+  t2[{1}] = 5;
+
+
+  ostringstream sout;
+  ArchiveOut ar_out(&sout);
+
+  ar_out % t1;
+  ar_out % t2;
+
+  Tensor<double> t3;
+  Tensor<double> t4;
+
+  istringstream sin(sout.str());
+  ArchiveIn ar_in(&sin);
+
+  ar_in % t3;
+  EXPECT_EQ(t1, t3);
+
+  ar_in % t4;
+  EXPECT_EQ(t2, t4);
+}
+
+
 int main(int argc, char** argv) {
   // Disables elapsed time by default.
   ::testing::GTEST_FLAG(print_time) = false;

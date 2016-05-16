@@ -17,12 +17,12 @@ using namespace std;
 using namespace Alexandria;
 
 int main() {
-  /*
-  ifstream fin("train-images-idx3-ubyte");
-  ifstream fin2("train-labels-idx1-ubyte");
+  ifstream fin("../examples/data/mnist/raw/train-images-idx3-ubyte");
+  ifstream fin2("../examples/data/mnist/raw/train-labels-idx1-ubyte");
+  /* 
+  ifstream fin("../examples/data/mnist/raw/t10k-images-idx3-ubyte");
+  ifstream fin2("../examples/data/mnist/raw/t10k-labels-idx1-ubyte");
   */
-  ifstream fin("t10k-images-idx3-ubyte");
-  ifstream fin2("t10k-labels-idx1-ubyte");
   if (!fin.good()) {
     cerr << "Cannot open image file";
     return -1;
@@ -77,8 +77,8 @@ int main() {
         raw.emplace_back(temp);
       }
     }
-    auto rows = static_cast<unsigned long>(n_rows);
-    auto cols = static_cast<unsigned long>(n_cols);
+    auto rows = static_cast<size_t>(n_rows);
+    auto cols = static_cast<size_t>(n_cols);
     data.emplace_back(
         Tensor<uint8_t>(Tensor<uint8_t>::Dense(Shape({rows, cols}), raw)));
 
@@ -87,11 +87,14 @@ int main() {
     fin2.read(reinterpret_cast<char*>(&temp), sizeof(temp));
     labels.emplace_back(temp);
   }
+  fin.close();
+  fin2.close();
 
-  ofstream fout("mnist_testing.son");
-  //ofstream fout("mnist_training.son");
+  //ofstream fout("mnist_testing.alx");
+  ofstream fout("mnist_training.alx");
   ArchiveOut ar(&fout);
   ar % labels % data;
+  fout.close();
 
   return 0;
 }

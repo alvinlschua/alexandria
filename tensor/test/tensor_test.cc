@@ -135,113 +135,43 @@ TEST(Tensor, Multiply) {
   EXPECT_EQ(t9, Tensor<double>({11}));
 }
 
-/*
-TEST(Tensor, timeMultiply) {
-  using namespace Sonnet::Util;
-  using namespace Sonnet::Tensor;
+TEST(Tensor, Serialize) {
+  using namespace Alexandria;
   using namespace std;
 
-  auto x = Tensor<double>::random(Shape({1000, 100}));
-  auto y = Tensor<double>::random(Shape({100, 1000}));
-  x.multiply(y);
+  auto t1 = Tensor<double>({{1, 3, 2}, {4, 1, 4}});    // 2 x 3
+  auto t2 = Tensor<double>({{1, 3}, {2, 4}, {1, 4}});  // 3 x 2
+
+  ostringstream sout;
+  ArchiveOut ar_out(&sout);
+
+  ar_out % t1;
+  ar_out % t2;
+
+  std::vector<Tensor<double>> vec;
+  vec.emplace_back(Tensor<double>({1, 2, 3, 2, 1}));
+  vec.emplace_back(Tensor<double>({{1, 2}, {3, 4}, {1, 2}}));
+
+  ar_out % vec;
+
+  istringstream sin(sout.str());
+  ArchiveIn ar_in(&sin);
+
+  Tensor<double> t3;
+  Tensor<double> t4;
+
+  ar_in % t3;
+  EXPECT_EQ(t1, t3);
+
+  ar_in % t4;
+  EXPECT_EQ(t2, t4);
+
+  std::vector<Tensor<double>> vec2;
+  ar_in % vec2;
+
+  EXPECT_EQ(vec.size(), vec2.size());
+  EXPECT_TRUE(std::equal(vec.cbegin(), vec.cend(), vec2.cbegin()));
 }
-
-TEST(Tensor, mask) {
-  using namespace Sonnet::Util;
-  using namespace Sonnet::Tensor;
-  using namespace std;
-
-  auto t1 =
-      Tensor<double>::make(Shape({2, 3, 2}), {1, 3, 2, 4, 1, 4, 2, 3, 2, 3, 4,
-3});
-
-  auto t2 = t1;
-  t2.fold({0});
-  EXPECT_EQ(t2, Tensor<double>::make(Shape({3, 2}), {3, 6, 4, 7, 5, 7}));
-
-  auto t3 = t1;
-  t3.fold({1, 2});
-  EXPECT_EQ(t3, Tensor<double>::make(Shape({2}), {15, 17}));
-
-  auto t4 = t1;
-  t4.maskIf(t4, [](double value) { return value <= 2; });
-  EXPECT_EQ(t4, Tensor<double>::make(Shape({2, 3, 2}),
-                               {0, 3, 0, 4, 0, 4, 0, 3, 0, 3, 4, 3}));
-
-  auto t5 = t1;
-  //  t5.maskByIndex([](const DimIndex& index) { return index[0] == 0; });
-  t5.maskElementIndices(
-      {{0, 0, 0}, {0, 0, 1}, {0, 1, 0}, {0, 1, 1}, {0, 2, 0}, {0, 2, 1}});
-  EXPECT_EQ(t5, Tensor<double>::make(Shape({2, 3, 2}),
-                               {0, 0, 0, 0, 0, 0, 2, 3, 2, 3, 4, 3}));
-}
-
-TEST(Tensor, applySlice) {
-  using namespace Sonnet::Util;
-  using namespace Sonnet::Tensor;
-  using namespace std;
-
-  auto t1 =
-      Tensor<double>::make(Shape({2, 3, 2}), {1, 3, 2, 4, 1, 4, 2, 3, 2, 3, 4,
-3});
-  auto t2 = t1;
-
-  t2.rotate(0, 1);
-  EXPECT_EQ(t2, Tensor<double>::make(Shape({2, 3, 2}),
-                               {2, 3, 2, 3, 4, 3, 1, 3, 2, 4, 1, 4}));
-
-  auto t3 = t1;
-  t3.accumulate(0);
-  EXPECT_EQ(t3, Tensor<double>::make(Shape({2, 3, 2}),
-                               {1, 3, 2, 4, 1, 4, 3, 6, 4, 7, 5, 7}));
-
-  auto t4 = t1;
-  t4.reverseAccumulate(0);
-  EXPECT_EQ(t4, Tensor<double>::make(Shape({2, 3, 2}),
-                               {3, 6, 4, 7, 5, 7, 2, 3, 2, 3, 4, 3}));
-
-  auto t5 = t1;
-  t5.reverse(2);
-  EXPECT_EQ(t5, Tensor<double>::make(Shape({2, 3, 2}),
-                               {3, 1, 4, 2, 4, 1, 3, 2, 3, 2, 3, 4}));
-}
-
-TEST(Tensor, nonChainedCommands) {
-  using namespace Sonnet::Util;
-  using namespace Sonnet::Tensor;
-  using namespace std;
-
-  auto t1 = Tensor<double>::make(Shape({3}), {2, 3, 2});
-  EXPECT_DOUBLE_EQ(t1.innerProduct(t1), 17.0);
-  EXPECT_DOUBLE_EQ(t1.product(), 12.0);
-  EXPECT_DOUBLE_EQ(t1.sum(), 7.0);
-}
-
-TEST(Tensor, covolution) {
-  using namespace Sonnet::Util;
-  using namespace Sonnet::Tensor;
-  using namespace std;
-
-  auto t = Tensor<double>::make(Shape({5}), {2, 3, 2, 1, 2});
-  auto kernel = Tensor<double>::make(Shape({3}), {1, 1, 1});
-
-  auto t1 = t;
-  t1.convolve1D(kernel);
-  CHECK(t1 == Tensor<double>::make(Shape({3}), {7, 6, 5}));
-
-  auto t2 = t;
-  t2.convolve1DExtended(kernel);
-  CHECK(t2 == Tensor<double>::make(Shape({7}), {2, 5, 7, 6, 5, 3, 2}));
-
-  auto t3 = t;
-  t3.convolve1DExtended(kernel, 2);
-  CHECK(t3 == Tensor<double>::make(Shape({9}), {2, 3, 4, 4, 6, 4, 4, 1, 2}));
-
-  auto t4 = t;
-  t4.convolve1D(kernel, 2);
-  CHECK(t4 == Tensor<double>::make(Shape({1}), {6}));
-}
-*/
 
 int main(int argc, char** argv) {
   // Disables elapsed time by default.
