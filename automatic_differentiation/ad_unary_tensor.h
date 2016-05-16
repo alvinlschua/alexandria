@@ -133,6 +133,25 @@ class UnaryMinus : public AD<T>::Unary {
   AD<T> simplifyImpl() const final;
 };
 
+// Unary Minus
+template <typename T>
+AD<T> UnaryMinus<T>::simplifyImpl() const {
+  AD<T> result;
+  if (this->term().template isType<typename AD<T>::Const>()) {
+    result = AD<T>(f(value(this->term())));
+  } else if (this->term().template isType<UnaryMinus>()) {
+    result = this->term().template reference<UnaryMinus>().term();
+  } else {
+    result = AD<T>(this->clone());
+  }
+  return result;
+}
+
+template <typename T>
+AD<T> operator-(const AD<T>& ad) {
+  return UnaryMinus<T>::makeAD(ad);
+}
+
 template <typename T>
 class Reshape : public AD<T>::Unary {
  public:
@@ -207,55 +226,54 @@ class Reshape : public AD<T>::Unary {
 };
 
 template <typename T>
-class Diagonal : public AD<T>::Unary {
+AD<T> reshape(const AD<T>& ad, const Shape& shape) {
+  return Reshape<T>::makeAD(ad, shape);
+}
+
+// f(x) is restricted to f_i(x_i)
+template <typename T>
+class SeparableFunction : public AD<T>::Unary {
  public:
   using VarValues = typename AD<T>::VarValues;
   using Sparse = typename T::Sparse;
 
-  Diagonal(const Diagonal&) = default;
-  Diagonal& operator=(const Diagonal&) = default;
-  virtual ~Diagonal() {}
+  SeparableFunction(const AD<T>& ad)
+      : AD<T>::Unary(ad),
+        eyeIndices_(2ul * ad.shape().nDimensions()),
+        indices_(ad.shape().nDimensions()),
+        eye_(T::sparseEye(combineShapes(ad.shape(), ad.shape()))) {
+    iota(eyeIndices_.begin(), eyeIndices_.end(), 0);
+    iota(indices_.begin(), indices_.end(), 0);
+  }
+  SeparableFunction(const SeparableFunction&) = default;
+  SeparableFunction& operator=(const SeparableFunction&) = default;
+  virtual ~SeparableFunction() {}
 
-  static AD<T> makeAD(const AD<T>& ad) { return AD<T>(Diagonal(ad).clone()); }
+ protected:
+  const Indices& indices() const { return indices_; }
 
  private:
-  explicit Diagonal(const AD<T>& ad)
-      : AD<T>::Unary(ad),
-        resultShape_(combineShapes(ad.shape(), ad.shape())),
-        indicesEye_(resultShape_.nDimensions()),
-        indices_(ad.shape().nDimensions()) {
-    iota(indicesEye_.begin(), indicesEye_.end(), 0);
-    iota(indices_.begin(), indices_.end(), indices_.size());
-  }
+  virtual AD<T> dFDiagonal() const = 0;
 
-  T f(const T& value) const final {
-    return multiply(T::sparseEye(this->shape()), indicesEye_, value, indices_);
-  }
   AD<T> dF() const final {
-    auto indices = Indices(this->shape().nDimensions());
-    iota(indices.begin(), indices.end(), indices_.size());
-    auto eye = T::sparseEye(this->shape());
-    return AD<T>(multiply(eye, indicesEye_, eye, indices));
+    return multiply(eye_, eyeIndices_, dFDiagonal(), indices_);
   }
 
   const Shape& shapeTermImpl() const final { return this->term().shape(); }
-  const Shape& shapeImpl() const final { return resultShape_; }
+  const Shape& shapeImpl() const final { return this->shapeTerm(); }
 
-  std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
-    return std::make_unique<Diagonal>(*this);
-  }
-
-  std::string expressionImpl() const { return "diagonal"; }
-
-  AD<T> simplifyImpl() const final { return AD<T>(this->clone()); }
-
-  Shape resultShape_;
-  Indices indicesEye_;
+  Indices eyeIndices_;
   Indices indices_;
+  AD<T> eye_;
 };
 
+/*
+Sigmoid
+f_i = 1 / (1 - exp(-x_i))
+df_i(x_i) /dx_i = f_i (1 - f_i)
+*/
 template <typename T>
-class Sigmoid : public AD<T>::Unary {
+class Sigmoid : public SeparableFunction<T> {
  public:
   using VarValues = typename AD<T>::VarValues;
   using Sparse = typename T::Sparse;
@@ -267,66 +285,127 @@ class Sigmoid : public AD<T>::Unary {
   static AD<T> makeAD(const AD<T>& ad) { return AD<T>(Sigmoid(ad).clone()); }
 
  private:
-  explicit Sigmoid(const AD<T>& ad) : AD<T>::Unary(ad) {}
+  explicit Sigmoid(const AD<T>& ad) : SeparableFunction<T>(ad) {}
 
   T f(const T& value) const final {
     return apply<typename T::ValueType>(
         value, [](typename T::ValueType x) { return 1.0 / (1.0 + exp(-x)); });
   }
-  AD<T> dF() const final {
-    Indices diagIndices(2 * this->shape().nDimensions());
-    Indices indices(this->shape().nDimensions());
-    iota(diagIndices.begin(), diagIndices.end(), 0);
-    iota(indices.begin(), indices.end(), 0);
-    return AD<T>(
-        multiply(diagonal(T::ones(this->shapeTerm()) - sigmoid(this->term())),
-                 diagIndices, sigmoid(this->term()), indices));
+  AD<T> dFDiagonal() const final {
+    return multiply(T::ones(this->shapeTerm()) - sigmoid(this->term()),
+                    this->indices(), sigmoid(this->term()), this->indices());
   }
-
-  const Shape& shapeTermImpl() const final { return this->term().shape(); }
-  const Shape& shapeImpl() const final { return this->shapeTerm(); }
 
   std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
     return std::make_unique<Sigmoid>(*this);
   }
 
-  std::string expressionImpl() const { return "reshape"; }
-
-  AD<T> simplifyImpl() const final { return AD<T>(this->clone()); }
-};
-
-// Unary Minus
-template <typename T>
-AD<T> UnaryMinus<T>::simplifyImpl() const {
-  AD<T> result;
-  if (this->term().template isType<typename AD<T>::Const>()) {
-    result = AD<T>(f(value(this->term())));
-  } else if (this->term().template isType<UnaryMinus>()) {
-    result = this->term().template reference<UnaryMinus>().term();
-  } else {
-    result = AD<T>(this->clone());
+  std::string expressionImpl() const {
+    return std::string("sigmoid(") + this->term().expression() + ")";
   }
-  return result;
-}
 
-template <typename T>
-AD<T> operator-(const AD<T>& ad) {
-  return UnaryMinus<T>::makeAD(ad);
-}
-
-template <typename T>
-AD<T> reshape(const AD<T>& ad, const Shape& shape) {
-  return Reshape<T>::makeAD(ad, shape);
-}
+  AD<T> simplifyImpl() const final {
+    auto term = this->term().simplify();
+    return sigmoid(term);
+  }
+};
 
 template <typename T>
 AD<T> sigmoid(const AD<T>& ad) {
   return Sigmoid<T>::makeAD(ad);
 }
 
+/*
+Log
+f_i = log(x_i) -- natural log
+df_i(x_i) /dx_i = 1 / x_i
+*/
 template <typename T>
-AD<T> diagonal(const AD<T>& ad) {
-  return Diagonal<T>::makeAD(ad);
+class Log : public SeparableFunction<T> {
+ public:
+  using VarValues = typename AD<T>::VarValues;
+  using Sparse = typename T::Sparse;
+
+  Log(const Log&) = default;
+  Log& operator=(const Log&) = default;
+  virtual ~Log() {}
+
+  static AD<T> makeAD(const AD<T>& ad) { return AD<T>(Log(ad).clone()); }
+
+ private:
+  explicit Log(const AD<T>& ad) : SeparableFunction<T>(ad) {}
+
+  T f(const T& value) const final {
+    return apply<typename T::ValueType>(
+        value, [](typename T::ValueType x) { return log(x); });
+  }
+  AD<T> dFDiagonal() const final { return reciprocal(this->term()); }
+
+  std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
+    return std::make_unique<Log>(*this);
+  }
+
+  std::string expressionImpl() const {
+    return std::string("log(") + this->term().expression() + ")";
+  }
+
+  AD<T> simplifyImpl() const final {
+    auto term = this->term().simplify();
+    return log(term);
+  }
+};
+
+template <typename T>
+AD<T> log(const AD<T>& ad) {
+  return Log<T>::makeAD(ad);
+}
+
+/*
+reciprocal
+f_i = 1 / x_i -- reciprocal
+df_i(x_i) /dx_i = - 1 / (x_i * x_i)
+*/
+template <typename T>
+class Reciprocal : public SeparableFunction<T> {
+ public:
+  using VarValues = typename AD<T>::VarValues;
+  using Sparse = typename T::Sparse;
+
+  Reciprocal(const Reciprocal&) = default;
+  Reciprocal& operator=(const Reciprocal&) = default;
+  virtual ~Reciprocal() {}
+
+  static AD<T> makeAD(const AD<T>& ad) { return AD<T>(Reciprocal(ad).clone()); }
+
+ private:
+  explicit Reciprocal(const AD<T>& ad) : SeparableFunction<T>(ad) {}
+
+  T f(const T& value) const final {
+    return apply<typename T::ValueType>(
+        value, [](typename T::ValueType x) { return 1.0 / x; });
+  }
+  AD<T> dFDiagonal() const final {
+    return -reciprocal(
+        multiply(this->term(), this->indices(), this->term(), this->indices()));
+  }
+
+  std::unique_ptr<typename AD<T>::Expression> cloneImpl() const {
+    return std::make_unique<Reciprocal>(*this);
+  }
+
+  std::string expressionImpl() const {
+    return std::string("1 / (") + this->term().expression() + ")";
+  }
+
+  AD<T> simplifyImpl() const final {
+    auto term = this->term().simplify();
+    return reciprocal(term);
+  }
+};
+
+template <typename T>
+AD<T> reciprocal(const AD<T>& ad) {
+  return Reciprocal<T>::makeAD(ad);
 }
 
 }  // namespace Alexandria
