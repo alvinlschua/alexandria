@@ -1,17 +1,17 @@
 #ifndef AUTOMATIC_DIFFERENTIATION_AD_TENSOR_WRAP_H_
 #define AUTOMATIC_DIFFERENTIATION_AD_TENSOR_WRAP_H_
 
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "glog/logging.h"
-#include "tensor/shape.h"
 #include "tensor/helpers.h"
+#include "tensor/shape.h"
 #include "tensor/tensor.h"
-#include "tensor/tensor_sparse.h"
 #include "tensor/tensor_dense.h"
+#include "tensor/tensor_sparse.h"
 
 // Use this in place of ad when differentiating tensors.
 namespace Alexandria {
@@ -103,8 +103,7 @@ class AD {
 };
 
 template <typename T>
-AD<T>::AD(const T& value)
-    : ptr_(Const::make(value)) {}
+AD<T>::AD(const T& value) : ptr_(Const::make(value)) {}
 
 template <typename T>
 AD<T>::AD(const std::string& identifier, const Shape& shape)
@@ -169,14 +168,13 @@ ADVector<T> grad(const AD<T>& expr, const std::vector<AD<T>>& vars);
 template <typename T>
 T value(const AD<T>& ad) {
   using Const = typename AD<T>::Const;
-  using Param = typename AD<T>::Param;
 
-  if (ad.template isType<Const>()) {
-    return ad.template reference<Const>().value();
-  } else if (ad.template isType<Param>()) {
-    return ad.template reference<Param>().value();
+  auto evaluated_ad = ad.evaluateAt({});
+
+  if (evaluated_ad.template isType<Const>()) {
+    return evaluated_ad.template reference<Const>().value();
   } else {
-    throw std::invalid_argument("type is not a const nor a param.");
+    throw std::invalid_argument("type does not evaluate to a const.");
   }
 }
 

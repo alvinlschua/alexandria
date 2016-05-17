@@ -29,14 +29,12 @@ class AD<T>::Var : public Expression {
   AD<T> differentiateImpl(const AD<T>& var) const final {
     return AD<T>(identifier() == Alexandria::identifier<T>(var)
                      ? T::sparseEye(combineShapes(this->shape(), this->shape()))
-                     : T::sparse(combineShapes(this->shape(),
-                                               var.reference<Var>().shape())));
+                     : T::sparse(combineShapes(this->shape(), var.shape())));
   }
 
   AD<T> evaluateAtImpl(const VarValues& varValues) const final {
     for (const auto& varValue : varValues) {
-      if (identifier() ==
-          Alexandria::identifier<T>(varValue.first)) {
+      if (identifier() == Alexandria::identifier<T>(varValue.first)) {
         if (varValue.second.shape() != shape_) {
           throw std::invalid_argument("Shape of tensor provided for variable " +
                                       identifier() + " does not match");

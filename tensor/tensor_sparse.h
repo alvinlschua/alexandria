@@ -32,6 +32,8 @@ class Tensor<T>::Sparse : public Base {
 
   // Make a sparse tensor
   explicit Sparse(const Shape& shape) : shape_(shape) {}
+  explicit Sparse(const Shape& shape, Data data)
+      : shape_(shape), data_(std::move(data)) {}
   Sparse(const Sparse&) = default;
   Sparse& operator=(const Sparse&) = default;
 
@@ -83,9 +85,7 @@ class Tensor<T>::Sparse : public Base {
     ar % shape_ % data_;
   }
 
-  void serializeOutImpl(ArchiveOut& ar) const final {
-    ar % shape_ % data_;
-  }
+  void serializeOutImpl(ArchiveOut& ar) const final { ar % shape_ % data_; }
   size_t serializeOutVersionImpl() const final { return 0ul; }
 
   std::unique_ptr<Base> cloneImpl() const {

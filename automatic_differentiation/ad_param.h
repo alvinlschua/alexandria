@@ -33,8 +33,7 @@ class AD<T>::Param : public Expression {
       : identifier_(identifier), value_(std::make_shared<T>(value)) {}
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
-    return AD<T>(identifier() == Alexandria::identifier(var) ? 1
-                                                                           : 0);
+    return AD<T>(identifier() == Alexandria::identifier(var) ? 1 : 0);
   }
 
   AD<T> evaluateAtImpl(const VarValues& /*varValues*/) const final {

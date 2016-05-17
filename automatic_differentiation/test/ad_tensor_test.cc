@@ -156,25 +156,32 @@ TEST(AD, Op) {
   EXPECT_EQ(value(D(x - y - y + x, y)),
             -2.0 * T::sparseEye(combineShapes(shape, shape)));
 }
-/*
+
 TEST(AD, Param) {
-  using AD = Alexandria::AD<double>;
+  using T = Alexandria::Tensor<double>;
+  using AD = Alexandria::AD<T>;
+  using Alexandria::Shape;
 
-  auto x = AD("x");
-  auto y = AD("y");
-  auto c = AD("c", 5);
+  auto shape = Shape({3});
 
-  auto expr = c * x;
+  auto t = T({{1, 3, 1}, {1, 4, 2}, {2, 1, 3}});
+  auto t2 = T({{1, 3, 3}, {2, 4, 2}, {2, 1, 3}});
+  auto x = AD("x", shape);
+  auto y = AD("y", shape);
+  auto c = AD("c", t);
+
+  auto expr = multiply(c, {0, -1}, x, {-1});
   auto diff = D(expr, x);
-  EXPECT_EQ(value(diff), 5);
-  param(c) = 6;
-  EXPECT_EQ(value(expr.evaluateAt({x = 2})), 12);
-  EXPECT_EQ(value(diff), 6);
-
   auto diff2 = D(expr, c);
-  EXPECT_EQ(value(diff2.evaluateAt({x = 1})), 1);
+
+  EXPECT_EQ(value(diff), t);
+  param(c) = t2;
+
+  EXPECT_EQ(value(expr.evaluateAt({x = T({1, 1, 1})})), T({7, 8, 6}));
+  EXPECT_EQ(value(diff), t2);
+  EXPECT_EQ(value(diff2.evaluateAt({x = T({1, 2, 4})})),
+            multiply(T({1, 2, 4}), {2}, T::sparseEye(Shape({3, 3})), {0, 1}));
 }
-*/
 
 int main(int argc, char** argv) {
   // Disables elapsed time by default.

@@ -75,9 +75,11 @@ AD<T> AD<T>::Unary::differentiateImpl(const AD<T>& var) const {
 template <typename T>
 AD<T> AD<T>::Unary::evaluateAtImpl(const VarValues& varValues) const {
   using Const = typename AD<T>::Const;
-  auto term = !this->term().template isType<Const>()
-                  ? this->term().evaluateAt(varValues)
-                  : this->term();
+
+  auto term = this->term().template isType<Const>()
+                  ? this->term()
+                  : this->term().evaluateAt(varValues);
+
   term = term.simplify();
 
   if (term.template isType<Const>()) {
@@ -136,15 +138,19 @@ class UnaryMinus : public AD<T>::Unary {
 // Unary Minus
 template <typename T>
 AD<T> UnaryMinus<T>::simplifyImpl() const {
-  AD<T> result;
-  if (this->term().template isType<typename AD<T>::Const>()) {
-    result = AD<T>(f(value(this->term())));
-  } else if (this->term().template isType<UnaryMinus>()) {
-    result = this->term().template reference<UnaryMinus>().term();
-  } else {
-    result = AD<T>(this->clone());
+  using Const = typename AD<T>::Const;
+
+  auto term = this->term().simplify();
+
+  if (term.template isType<Const>()) {
+    return AD<T>(f(value(term)));
   }
-  return result;
+
+  if (term.template isType<UnaryMinus>()) {
+    return term.template reference<UnaryMinus>().term();
+  }
+
+  return -term;
 }
 
 template <typename T>
@@ -203,8 +209,21 @@ class Reshape : public AD<T>::Unary {
     }
   }
 
+  // at the moment reshape only works with dense
   T f(const T& value) const final {
-    return multiply(permute_, indicesPermute_, value, indices_);
+    using Dense = typename T::Dense;
+    using Sparse = typename T::Sparse;
+    if (value.template isType<Dense>()) {
+      auto values = value.template reference<Dense>();
+      auto data = typename Dense::Data(values.cbegin(), values.cend());
+      return T(Dense(this->shape(), std::move(data)));
+    } else if (value.template isType<Sparse>()) {
+      auto values = value.template reference<Sparse>();
+      auto data = typename Sparse::Data(values.cbegin(), values.cend());
+      return T(Sparse(this->shape(), std::move(data)));
+    } else {
+      throw unimplemented_exception("unknown tensor type");
+    }
   }
   AD<T> dF() const final { return AD<T>(T(permute_)); }
 
@@ -217,7 +236,16 @@ class Reshape : public AD<T>::Unary {
 
   std::string expressionImpl() const { return "reshape"; }
 
-  AD<T> simplifyImpl() const final { return AD<T>(this->clone()); }
+  AD<T> simplifyImpl() const final {
+    using Const = typename AD<T>::Const;
+    auto term = this->term().simplify();
+
+    if (term.template isType<Const>()) {
+      return AD<T>(f(value(term)));
+    }
+
+    return reshape(term, this->shape());
+  }
 
   Shape resultShape_;
   T permute_;
@@ -305,7 +333,14 @@ class Sigmoid : public SeparableFunction<T> {
   }
 
   AD<T> simplifyImpl() const final {
+    using Const = typename AD<T>::Const;
+
     auto term = this->term().simplify();
+
+    if (term.template isType<Const>()) {
+      return AD<T>(f(value(term)));
+    }
+
     return sigmoid(term);
   }
 };
@@ -350,7 +385,14 @@ class Log : public SeparableFunction<T> {
   }
 
   AD<T> simplifyImpl() const final {
+    using Const = typename AD<T>::Const;
+
     auto term = this->term().simplify();
+
+    if (term.template isType<Const>()) {
+      return AD<T>(f(value(term)));
+    }
+
     return log(term);
   }
 };
@@ -398,7 +440,18 @@ class Reciprocal : public SeparableFunction<T> {
   }
 
   AD<T> simplifyImpl() const final {
+    using Const = typename AD<T>::Const;
+
     auto term = this->term().simplify();
+
+    if (term.template isType<Const>()) {
+      return AD<T>(f(value(term)));
+    }
+
+    if (term.template isType<Reciprocal>()) {
+      return term.template reference<Reciprocal>().term();
+    }
+
     return reciprocal(term);
   }
 };

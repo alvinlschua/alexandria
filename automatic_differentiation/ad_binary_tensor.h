@@ -101,12 +101,14 @@ AD<T> AD<T>::Binary::differentiateImpl(const AD<T>& var) const {
 
 template <typename T>
 AD<T> AD<T>::Binary::evaluateAtImpl(const VarValues& varValues) const {
-  auto term1 = (!this->term1().template isType<Const>())
-                   ? this->term1().evaluateAt(varValues)
-                   : this->term1();
-  auto term2 = (!this->term2().template isType<Const>())
-                   ? this->term2().evaluateAt(varValues)
-                   : this->term2();
+  using Const = typename AD<T>::Const;
+
+  auto term1 = this->term1().template isType<Const>()
+                   ? this->term1()
+                   : this->term1().evaluateAt(varValues);
+  auto term2 = this->term2().template isType<Const>()
+                   ? this->term2()
+                   : this->term2().evaluateAt(varValues);
 
   term1 = term1.simplify();
   term2 = term2.simplify();
@@ -164,6 +166,46 @@ class Plus : public AD<T>::Binary {
 };
 
 template <typename T>
+AD<T> Plus<T>::simplifyImpl() const {
+  using Const = typename AD<T>::Const;
+
+  auto term1 = this->term1().simplify();
+  auto term2 = this->term2().simplify();
+
+  if (term1.template isType<Const>() && term2.template isType<Const>()) {
+    return AD<T>(f(value(term1), value(term2)));
+  }
+
+  // Convert to Const + Expression if possible
+  if (term2.template isType<Const>()) {
+    std::swap(term1, term2);
+  }
+
+  // 0 + Expression -> Expression
+  if (term1.template isType<Const>() &&
+      value(term1) == T::zeros(term1.shape())) {
+    return term2;
+  }
+
+  return term1 + term2;
+}
+
+template <typename T>
+AD<T> operator+(const AD<T>& term1, const AD<T>& term2) {
+  return Plus<T>::makeAD(term1, term2);
+}
+
+template <typename T>
+AD<T> operator+(const T& term1, const AD<T>& term2) {
+  return Plus<T>::makeAD(AD<T>(term1), term2);
+}
+
+template <typename T>
+AD<T> operator+(const AD<T>& term1, const T& term2) {
+  return Plus<T>::makeAD(term1, AD<T>(term2));
+}
+
+template <typename T>
 class Minus : public AD<T>::Binary {
  public:
   Minus(const Minus&) = default;
@@ -204,6 +246,46 @@ class Minus : public AD<T>::Binary {
 
   AD<T> simplifyImpl() const final;
 };
+
+// Minus
+template <typename T>
+AD<T> Minus<T>::simplifyImpl() const {
+  using Const = typename AD<T>::Const;
+
+  auto term1 = this->term1().simplify();
+  auto term2 = this->term2().simplify();
+
+  if (term1.template isType<Const>() && term2.template isType<Const>()) {
+    return AD<T>(f(value(term1), value(term2)));
+  }
+
+  if (term1.template isType<Const>() &&
+      value(term1) == T::zeros(term1.shape())) {
+    return -term2;
+  }
+
+  if (term2.template isType<Const>() &&
+      value(term2) == T::zeros(term2.shape())) {
+    return term1;
+  }
+
+  return term1 - term2;
+}
+
+template <typename T>
+AD<T> operator-(const AD<T>& term1, const AD<T>& term2) {
+  return Minus<T>::makeAD(term1, term2);
+}
+
+template <typename T>
+AD<T> operator-(const T& value, const AD<T>& term2) {
+  return Minus<T>::makeAD(AD<T>(value), term2);
+}
+
+template <typename T>
+AD<T> operator-(const AD<T>& term1, const T& value) {
+  return Minus<T>::makeAD(term1, AD<T>(value));
+}
 
 template <typename T>
 class Multiply : public AD<T>::Binary {
@@ -283,114 +365,6 @@ class Multiply : public AD<T>::Binary {
   Shape resultShape_;
 };
 
-template <typename T>
-AD<T> Plus<T>::simplifyImpl() const {
-  using Const = typename AD<T>::Const;
-
-  auto term1 = this->term1().simplify();
-  auto term2 = this->term2().simplify();
-
-  if (term1.template isType<Const>() && term2.template isType<Const>()) {
-    return AD<T>(f(value(term1), value(term2)));
-  }
-
-  // Convert to Const + Expression if possible
-  if (term2.template isType<Const>()) {
-    std::swap(term1, term2);
-  }
-
-  // 0 + Expression -> Expression
-  if (term1.template isType<Const>() &&
-      value(term1) == T::zeros(term1.shape())) {
-    return term2;
-  }
-
-  return term1 + term2;
-}
-
-template <typename T>
-AD<T> operator+(const AD<T>& term1, const AD<T>& term2) {
-  return Plus<T>::makeAD(term1, term2);
-}
-
-template <typename T>
-AD<T> operator+(const T& term1, const AD<T>& term2) {
-  return Plus<T>::makeAD(AD<T>(term1), term2);
-}
-
-template <typename T>
-AD<T> operator+(const AD<T>& term1, const T& term2) {
-  return Plus<T>::makeAD(term1, AD<T>(term2));
-}
-
-// Minus
-template <typename T>
-AD<T> Minus<T>::simplifyImpl() const {
-  using Const = typename AD<T>::Const;
-
-  auto term1 = this->term1().simplify();
-  auto term2 = this->term2().simplify();
-
-  if (term1.template isType<Const>() && term2.template isType<Const>()) {
-    return AD<T>(f(value(term1), value(term2)));
-  }
-
-  /*
-  // Convert to AD<T>::Const - Expression if possible
-  if (term2.template isType<Const>()) {
-    std::swap(term1, term2);
-  }
-
-  // 0 - Expression -> -Expression
-  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
-    return -term2;
-  }
-  */
-
-  return term1 - term2;
-}
-
-template <typename T>
-AD<T> operator-(const AD<T>& term1, const AD<T>& term2) {
-  return Minus<T>::makeAD(term1, term2);
-}
-
-template <typename T>
-AD<T> operator-(const T& value, const AD<T>& term2) {
-  return Minus<T>::makeAD(AD<T>(value), term2);
-}
-
-template <typename T>
-AD<T> operator-(const AD<T>& term1, const T& value) {
-  return Minus<T>::makeAD(term1, AD<T>(value));
-}
-
-template <typename T>
-AD<T> operator*(const typename T::ValueType& scalar, const AD<T>& term) {
-  auto scalarEye =
-      T::sparseEye(combineShapes(term.shape(), term.shape()), scalar);
-  Indices indices1(2 * term.shape().nDimensions());
-
-  for (auto index = 0ul; index < indices1.size(); ++index) {
-    indices1[index] =
-        static_cast<int>(index < term.shape().nDimensions()
-                             ? index
-                             : term.shape().nDimensions() - index - 1);
-  }
-
-  Indices indices2(term.shape().nDimensions());
-  for (auto index = 0ul; index < indices2.size(); ++index) {
-    indices2[index] = static_cast<int>(-index - 1);
-  }
-
-  return multiply(AD<T>(scalarEye), indices1, term, indices2);
-}
-
-template <typename T>
-AD<T> operator*(const AD<T>& term, const typename T::ValueType& scalar) {
-  return mutiply(scalar, term);
-}
-
 // Multiply
 template <typename T>
 AD<T> Multiply<T>::simplifyImpl() const {
@@ -400,17 +374,17 @@ AD<T> Multiply<T>::simplifyImpl() const {
   auto term2 = this->term2().simplify();
 
   if (term1.template isType<Const>() && term2.template isType<Const>()) {
-    auto result = AD<T>(f(value(term1), value(term2)));
-
-    return result;
+    return AD<T>(f(value(term1), value(term2)));
   }
 
-  // 0 * Exression -> 0
+  if ((term1.template isType<Const>() &&
+       value(term1) == T::zeros(term1.shape())) ||
+      (term2.template isType<Const>() &&
+       value(term2) == T::zeros(term2.shape()))) {
+    return AD<T>(T::zeros(this->shape()));
+  }
+
   /*
-  if (term1.template isType<Const>() && Util::almostEqual(value(term1), 0)) {
-    return AD<T>(0);
-  }
-
   // 1 * Exression -> Expression
   if (term1.template isType<Const>() && Util::almostEqual(value(term1), 1)) {
     return term2;
@@ -424,6 +398,19 @@ template <typename T>
 AD<T> multiply(const AD<T>& term1, const Indices& indices1, const AD<T>& term2,
                const Indices& indices2) {
   return Multiply<T>::makeAD(term1, indices1, term2, indices2);
+}
+
+template <typename T>
+AD<T> operator*(const typename T::ValueType& scalar, const AD<T>& term) {
+  Indices indices(term.shape().nDimensions());
+  std::iota(indices.begin(), indices.end(), 0);
+
+  return multiply(AD<T>(T::fill(term.shape(), scalar)), indices, term, indices);
+}
+
+template <typename T>
+AD<T> operator*(const AD<T>& term, const typename T::ValueType& scalar) {
+  return mutiply(scalar, term);
 }
 
 }  // namespace Alexandria

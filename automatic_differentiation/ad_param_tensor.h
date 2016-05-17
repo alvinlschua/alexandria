@@ -33,10 +33,10 @@ class AD<T>::Param : public Expression {
       : identifier_(identifier), value_(std::make_shared<T>(value)) {}
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
-    return AD<T>(
-        identifier() == Alexandria::identifier(var)
-            ? T::sparseEye(combineShapes(this->shape(), this->shape()))
-            : T::sparse(combineShapes(this->shape(), var.reference<Var>().shape())));
+    auto result = AD<T>(identifier() == Alexandria::identifier(var)
+                     ? T::sparseEye(combineShapes(this->shape(), this->shape()))
+                     : T::sparse(combineShapes(this->shape(), var.shape())));
+      return result;
   }
 
   AD<T> evaluateAtImpl(const VarValues& /*varValues*/) const final {

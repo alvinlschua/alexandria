@@ -63,12 +63,12 @@ AD<T> AD<T>::Binary::differentiateImpl(const AD<T>& var) const {
 
 template <typename T>
 AD<T> AD<T>::Binary::evaluateAtImpl(const VarValues& varValues) const {
-  auto term1 = (!this->term1().template isType<Const>())
-                   ? this->term1().evaluateAt(varValues)
-                   : this->term1();
-  auto term2 = (!this->term2().template isType<Const>())
-                   ? this->term2().evaluateAt(varValues)
-                   : this->term2();
+  auto term1 = this->term1().template isType<Const>()
+                   ? this->term1()
+                   : this->term1().evaluateAt(varValues);
+  auto term2 = this->term2().template isType<Const>()
+                   ? this->term2()
+                   : this->term2().evaluateAt(varValues);
 
   term1 = term1.simplify();
   term2 = term2.simplify();

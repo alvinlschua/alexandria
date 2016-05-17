@@ -265,9 +265,9 @@ void Tensor<T>::serializeOutImpl(ArchiveOut& ar) const {
 template <typename T>
 Tensor<T> Tensor<T>::fill(const Shape& shape, T value) {
   auto size = nElements(shape);
-  auto data = std::vector<T>(size, value);
+  auto data = typename Dense::Data(size, value);
 
-  return Tensor<T>(Dense(shape, std::move(data)).clone());
+  return Tensor<T>(Dense(shape, std::move(data)));
 }
 
 template <typename T>
@@ -287,7 +287,7 @@ template <typename TDistribution>
 Tensor<T> Tensor<T>::random(const Shape& shape,
                             const TDistribution& distribution) {
   auto data = rng().generate(distribution, nElements(shape));
-  return Tensor<T>(Dense(shape, data));
+  return Tensor<T>(Dense(shape, std::move(data)));
 }
 
 // Make a uniform(-1, 1) random tensor.
@@ -519,7 +519,7 @@ std::ostream& operator<<(std::ostream& out, const Tensor<T>& t) {
   const auto accesser = Accesser(&shape);
 
   out << shape << "{";
-  if (size > 12) {
+  if (size > 30) {
     out << " " << size << " elements }";
   } else {
     for (auto iter = accesser.begin(); iter != accesser.end(); ++iter) {

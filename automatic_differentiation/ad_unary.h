@@ -5,9 +5,9 @@
 #include <string>
 
 #include "automatic_differentiation/ad.h"
+#include "automatic_differentiation/ad_const.h"
 #include "automatic_differentiation/ad_expression.h"
 #include "automatic_differentiation/ad_var.h"
-#include "automatic_differentiation/ad_const.h"
 #include "util/clonable.h"
 
 namespace Alexandria {
@@ -54,27 +54,26 @@ AD<T> AD<T>::Unary::differentiateImpl(const AD<T>& var) const {
 
 template <typename T>
 AD<T> AD<T>::Unary::evaluateAtImpl(const VarValues& varValues) const {
-  using Const = typename AD<T>::Const;
-  auto term = !this->term().template isType<Const>()
-                  ? this->term().evaluateAt(varValues)
-                  : this->term();
+  auto term = this->term().template isType<Const>()
+                  ? this->term()
+                  : this->term().evaluateAt(varValues);
   term = term.simplify();
 
   if (term.template isType<Const>()) {
-    return AD<T>(f(term.template reference<Const>().value()));
+    return AD<T>(f(value(term)));
   }
 
   auto ptr = this->clone();
   dynamic_cast<Unary*>(ptr.get())->term_ = term;
 
-  return AD<T>(std::move(ptr));
+  return AD<T>(std::move(ptr)).simplify();
 }
 
 template <typename T>
 AD<T> AD<T>::Unary::simplifyImpl() const {
-  return term().template isType<typename AD<T>::Const>()
-             ? AD<T>(f(value(term())))
-             : AD<T>(this->clone());
+  using Const = typename AD<T>::Const;
+  return term().template isType<Const>() ? AD<T>(f(value(term())))
+                                         : AD<T>(this->clone());
 }
 
 template <typename T>
@@ -99,8 +98,11 @@ class UnaryMinus : public AD<T>::Unary {
   }
 
   std::string expressionImpl() const {
-    return this->term().template isType<typename AD<T>::Const>() ||
-                   this->term().template isType<typename AD<T>::Var>()
+    using Const = typename AD<T>::Const;
+    using Var = typename AD<T>::Var;
+
+    return this->term().template isType<Const>() ||
+                   this->term().template isType<Var>()
                ? "-" + this->term().expression()
                : "-(" + this->term().expression() + ")";
   }
@@ -207,15 +209,14 @@ class Log : public AD<T>::Unary {
 // Unary Minus
 template <typename T>
 AD<T> UnaryMinus<T>::simplifyImpl() const {
-  AD<T> result;
-  if (this->term().template isType<typename AD<T>::Const>()) {
-    result = AD<T>(f(value(this->term())));
+  using Const = typename AD<T>::Const;
+
+  if (this->term().template isType<Const>()) {
+    return AD<T>(f(value(this->term())));
   } else if (this->term().template isType<UnaryMinus>()) {
-    result = this->term().template reference<UnaryMinus>().term();
-  } else {
-    result = AD<T>(this->clone());
+    return this->term().template reference<UnaryMinus>().term();
   }
-  return result;
+  return AD<T>(this->clone());
 }
 
 template <typename T>

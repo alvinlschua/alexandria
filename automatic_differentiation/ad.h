@@ -1,10 +1,10 @@
 #ifndef AUTOMATIC_DIFFERENTIATION_AD_H_
 #define AUTOMATIC_DIFFERENTIATION_AD_H_
 
-#include <vector>
-#include <string>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "glog/logging.h"
 
@@ -94,12 +94,10 @@ class AD {
 };
 
 template <typename T>
-AD<T>::AD(const T& value)
-    : ptr_(Const::make(value)) {}
+AD<T>::AD(const T& value) : ptr_(Const::make(value)) {}
 
 template <typename T>
-AD<T>::AD(const std::string& identifier)
-    : ptr_(Var::make(identifier)) {
+AD<T>::AD(const std::string& identifier) : ptr_(Var::make(identifier)) {
   if (identifier.size() == 0)
     throw std::invalid_argument("identifier should be specified");
 
@@ -155,14 +153,13 @@ ADVector<T> grad(const AD<T>& expr, const std::vector<AD<T>>& vars);
 template <typename T>
 T value(const AD<T>& ad) {
   using Const = typename AD<T>::Const;
-  using Param = typename AD<T>::Param;
 
-  if (ad.template isType<Const>()) {
-    return ad.template reference<Const>().value();
-  } else if (ad.template isType<Param>()) {
-    return ad.template reference<Param>().value();
+  auto evaluated_ad = ad.evaluateAt({});
+
+  if (evaluated_ad.template isType<Const>()) {
+    return evaluated_ad.template reference<Const>().value();
   } else {
-    throw std::invalid_argument("type is not a const nor a param.");
+    throw std::invalid_argument("type does not to a const.");
   }
 }
 
