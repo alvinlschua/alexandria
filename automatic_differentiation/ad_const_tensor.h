@@ -26,8 +26,7 @@ class AD<T>::Const : public Expression {
   explicit Const(const T& value) : value_(value) {}
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
-    return AD<T>(
-        T::sparse(combineShapes(this->shape(), var.reference<Var>().shape())));
+    return AD<T>(T::sparse(combineShapes(this->shape(), var.shape())));
   }
 
   AD<T> simplifyImpl() const final { return AD<T>(value()); }

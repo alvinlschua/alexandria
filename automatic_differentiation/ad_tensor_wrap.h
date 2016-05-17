@@ -150,11 +150,6 @@ typename AD<T>::VarValue AD<T>::operator=(const T& value) {
   return AD::VarValue(*this, value);
 }
 
-// Differentiate.
-template <typename T>
-inline AD<T> D(const AD<T>& expr, const AD<T>& var) {
-  return expr.differentiate(var);
-}
 
 // TODO(alvin) Make ADVector its own class and provide methods like evaluateAt
 // and simplify.
@@ -195,6 +190,12 @@ std::string identifier(const AD<T>& ad) {
 template <typename T>
 T& param(const AD<T>& ad) {
   return ad.template reference<typename AD<T>::Param>().value();
+}
+
+// Differentiate.
+template <typename T>
+inline AD<T> D(const AD<T>& expr, const AD<T>& var) {
+  return expr.differentiate(var);
 }
 
 template <typename T>
