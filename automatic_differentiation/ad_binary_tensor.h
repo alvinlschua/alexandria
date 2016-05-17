@@ -410,7 +410,12 @@ AD<T> operator*(const typename T::ValueType& scalar, const AD<T>& term) {
 
 template <typename T>
 AD<T> operator*(const AD<T>& term, const typename T::ValueType& scalar) {
-  return mutiply(scalar, term);
+  return operator*(scalar, term);
+}
+
+template <typename T>
+AD<T> operator/(const AD<T>& term, const typename T::ValueType& scalar) {
+  return operator*(1.0 / scalar, term);
 }
 
 }  // namespace Alexandria

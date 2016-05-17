@@ -155,6 +155,9 @@ TEST(AD, Op) {
             2.0 * T::sparseEye(combineShapes(shape, shape)));
   EXPECT_EQ(value(D(x - y - y + x, y)),
             -2.0 * T::sparseEye(combineShapes(shape, shape)));
+
+  EXPECT_EQ(value(D(x + y / 2.0, y)),
+            T::sparseEye(combineShapes(shape, shape)) / 2.0);
 }
 
 TEST(AD, Param) {
