@@ -83,7 +83,7 @@ AD<T> AD<T>::Unary::evaluateAtImpl(const VarValues& varValues) const {
   term = term.simplify();
 
   if (term.template isType<Const>()) {
-    return AD<T>(f(term.template reference<Const>().value()));
+    return AD<T>(f(value(term)));
   }
 
   auto ptr = this->clone();
@@ -115,7 +115,8 @@ class UnaryMinus : public AD<T>::Unary {
 
   T f(const T& value) const final { return -value; }
   AD<T> dF() const final {
-    return AD<T>(-T::sparseEye(combineShapes(this->shape(), this->shape())));
+    return AD<T>(
+        T::constDiagonal(combineShapes(this->shape(), this->shape()), -1));
   }
 
   const Shape& shapeTermImpl() const final { return this->term().shape(); }

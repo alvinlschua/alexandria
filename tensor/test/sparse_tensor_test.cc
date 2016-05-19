@@ -92,6 +92,20 @@ TEST(Tensor, Op) {
             Tensor<double>({1, 2, 3}));
 }
 
+TEST(Tensor, Eye) {
+  using namespace Alexandria;
+  using namespace std;
+
+  auto t1 = Tensor<double>::constDiagonal(Shape({3, 3}), 2);
+
+  auto index = 0ul;
+  for (auto value : t1) {
+    EXPECT_EQ(value.second, 2);
+    EXPECT_EQ(value.first, Address({index, index}));
+    ++index;
+  }
+}
+
 TEST(Tensor, Serialize) {
   using namespace Alexandria;
   using namespace std;

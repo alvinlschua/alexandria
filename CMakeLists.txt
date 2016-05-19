@@ -103,7 +103,7 @@ target_link_libraries(ad_tensor_test util)
 target_link_libraries(ad_tensor_test tensor)
 target_link_libraries(ad_tensor_test ${GLOG_LIBRARIES})
 target_link_libraries(ad_tensor_test ${GTEST_LIBRARIES})
-target_link_libraries(ad_tensor_test ${gflags_LIBRARIES})
+target_link_libraries(sparse_tensor_test ${GTEST_MAIN_LIBRARIES})
 
 add_executable(mnist_read_raw examples/data/mnist/mnist_read_raw.cc)
 target_link_libraries(mnist_read_raw util)

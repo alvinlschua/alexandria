@@ -29,6 +29,8 @@ class Tensor : public Serializable {
   class Base;
   class Dense;
   class Sparse;
+  class ConstDiagonal;
+  class Const;
   class AddressIterator;
 
   using Ptr = std::unique_ptr<Base>;
@@ -49,6 +51,8 @@ class Tensor : public Serializable {
 
   explicit Tensor(const Dense& tensor) : ptr_(tensor.clone()) {}
   explicit Tensor(const Sparse& tensor) : ptr_(tensor.clone()) {}
+  explicit Tensor(const ConstDiagonal& tensor) : ptr_(tensor.clone()) {}
+  explicit Tensor(const Const& tensor) : ptr_(tensor.clone()) {}
 
   explicit Tensor(const Data1d& data)
       : ptr_(Dense(Shape({data.size()}), data).clone()) {}
@@ -63,13 +67,14 @@ class Tensor : public Serializable {
   static Tensor dense(const Shape& shape);
   static Tensor sparse(const Shape& shape);
   static Tensor generate(const Shape& shape, std::function<T(Address)> fn);
+  static Tensor constDiagonal(const Shape& shape, T value = 1);
 
   template <typename TDistribution>
   static Tensor random(const Shape& shape, const TDistribution& distribution);
   static Tensor random(const Shape& shape);
 
   // shape
-  static Tensor sparseEye(const Shape& shape, T value = 1);
+  static Tensor sparseEye(const Shape& shape);
 
   // Return the number of elements.
   size_t size() const { return ptr_->size(); }
@@ -145,11 +150,11 @@ bool operator==(const Tensor<T>& t1, const Tensor<T>& t2) {
                         [](T x1, T x2) { return almostEqual(x1, x2); });
   } else {
     if (t1.shape() != t2.shape()) return false;
-    Address address(t1.shape().nDimensions(), 0);
-    auto size = nElements(t1.shape());
-    for (auto index = 0ul; index < size;
-         ++index, address = increment(std::move(address), t1.shape())) {
-      if (!almostEqual(t1[address], t2[address])) {
+    auto& x = t1.size() > t2.size() ? t1 : t2;
+    auto& y = t1.size() <= t2.size() ? t1 : t2;
+
+    for (const auto& address_value : x) {
+      if (!almostEqual(address_value.second, y.at(address_value.first))) {
         result = false;
         break;
       }
@@ -191,6 +196,11 @@ Tensor<T> Tensor<T>::dense(const Shape& shape) {
 }
 
 template <typename T>
+Tensor<T> Tensor<T>::constDiagonal(const Shape& shape, T value) {
+  return Tensor(ConstDiagonal(shape, value));
+}
+
+template <typename T>
 Tensor<T>::Tensor(const Data2d& data) {
   Shape shape({data.size(), data.front().size()});
   std::vector<T> result(nElements(shape));
@@ -225,30 +235,33 @@ Tensor<T>::Tensor(const Data3d& data) {
 
 // Makes an eye with shape x shape, so that e_ij,lm = delta_il delta_jm
 template <typename T>
-Tensor<T> Tensor<T>::sparseEye(const Shape& shape, T value) {
-  if (!isEyeShape(shape)) {
-    throw std::invalid_argument("shape not suitable for eye");
-  }
+Tensor<T> Tensor<T>::sparseEye(const Shape& shape) {
+  return constDiagonal(shape);
+  /*
+if (!isEyeShape(shape)) {
+  throw std::invalid_argument("shape not suitable for eye");
+}
 
-  std::vector<size_t> dims(shape.begin(),
-                           shape.begin() + shape.nDimensions() / 2);
-  Shape parseShape = Shape(dims);
+std::vector<size_t> dims(shape.begin(),
+                         shape.begin() + shape.nDimensions() / 2);
+Shape parseShape = Shape(dims);
 
-  Address address(parseShape.nDimensions(), 0);
-  auto size = nElements(shape);
+Address address(parseShape.nDimensions(), 0);
+auto size = nElements(shape);
 
-  auto result = Tensor(Sparse(shape));
-  auto resultAddress = Address(shape.nDimensions());
-  for (auto index = 0ul; index < size; ++index) {
-    auto iter =
-        std::copy(address.cbegin(), address.cend(), resultAddress.begin());
-    std::copy(address.cbegin(), address.cend(), iter);
+auto result = Tensor(Sparse(shape));
+auto resultAddress = Address(shape.nDimensions());
+for (auto index = 0ul; index < size; ++index) {
+  auto iter =
+      std::copy(address.cbegin(), address.cend(), resultAddress.begin());
+  std::copy(address.cbegin(), address.cend(), iter);
 
-    result.set(resultAddress, value);
-    address = increment(std::move(address), shape);
-  }
+  result.set(resultAddress, value);
+  address = increment(std::move(address), shape);
+}
 
-  return result;
+return result;
+*/
 }
 
 template <typename T>
@@ -272,20 +285,23 @@ void Tensor<T>::serializeOutImpl(ArchiveOut& ar) const {
 
 template <typename T>
 Tensor<T> Tensor<T>::fill(const Shape& shape, T value) {
-  auto size = nElements(shape);
-  auto data = typename Dense::Data(size, value);
+  if (almostEqual(value, 0)) {
+    return Tensor<T>(Sparse(shape));
+  }
 
+  std::vector<T> data(nElements(shape), value);
   return Tensor<T>(Dense(shape, std::move(data)));
 }
 
 template <typename T>
 Tensor<T> Tensor<T>::ones(const Shape& shape) {
-  return fill(shape, 1);
+  //  return fill(shape, 1);
+  return Tensor<T>(Const(shape, 1));
 }
 
 template <typename T>
 Tensor<T> Tensor<T>::zeros(const Shape& shape) {
-  return fill(shape, 0);
+  return Tensor<T>(Sparse(shape));
 }
 
 // Make a random tensor. TDistribution should be a RandomNumberDistribution
@@ -309,23 +325,20 @@ Tensor<T> Tensor<T>::random(const Shape& shape) {
 template <typename T>
 Tensor<T> apply(Tensor<T> t, std::function<T(T)> fn) {
   using Dense = typename Tensor<T>::Dense;
-  using Sparse = typename Tensor<T>::Sparse;
 
   if (t.template isType<Dense>()) {
     auto& temp = t.template reference<Dense>();
     std::transform(temp.data().cbegin(), temp.data().cend(),
                    temp.data().begin(), fn);
-  } else if (t.template isType<Sparse>()) {
-    if (!almostEqual(fn(0), 0)) {
-      throw std::invalid_argument(
-          "apply function for sparse tensors must obey f(0) == 0");
-    }
-    auto& sparse = t.template reference<Sparse>();
-    for (auto& value : sparse.data()) {
-      value.second = fn(value.second);
-    }
   } else {
-    CHECK(false) << "cannot apply to this tensor type" << std::endl;
+    auto result = Tensor<T>(Dense(t.shape()));
+    Address address(t.shape().nDimensions(), 0);
+    auto size = nElements(t.shape());
+    for (auto index = 0ul; index < size;
+         ++index, address = increment(std::move(address), t.shape())) {
+      result.set(address, fn(t.at(address)));
+    }
+    std::swap(result, t);
   }
 
   return t;
@@ -354,12 +367,14 @@ Tensor<T> apply(Tensor<T> t1, const Tensor<T>& t2, std::function<T(T, T)> fn) {
              fn(address_value.second, t2.at(address_value.first)));
     }
   } else {
+    auto result = Tensor<T>(Dense(t1.shape()));
     Address address(t1.shape().nDimensions(), 0);
     auto size = nElements(t1.shape());
     for (auto index = 0ul; index < size;
          ++index, address = increment(std::move(address), t1.shape())) {
-      t1.set(address, fn(t1.at(address), t2.at(address)));
+      result.set(address, fn(t1.at(address), t2.at(address)));
     }
+    std::swap(result, t1);
   }
   return t1;
 }

@@ -109,11 +109,12 @@ TEST(AD, UnaryOp) {
 
   EXPECT_EQ(value(sigmoid(x).evaluateAt({x = T({-1, 0, 1})})),
             T({1.0 / (1.0 + exp(1)), 1.0 / 2.0, 1.0 / (1.0 + exp(-1))}));
+  std::cout << D(sigmoid(x), x).evaluateAt({x = T({-1, 0, 1})}).expression() << std::endl;
   EXPECT_EQ(value(D(sigmoid(x), x).evaluateAt({x = T({-1, 0, 1})})),
             T({{1.0 / (1.0 + exp(1)) * (1.0 - 1.0 / (1.0 + exp(1))), 0, 0},
                {0, 1.0 / 4.0, 0},
                {0, 0, 1.0 / (1.0 + exp(-1)) * (1.0 - 1.0 / (1.0 + exp(-1)))}}));
-
+  
   EXPECT_EQ(value(log(x).evaluateAt({x = T({0.1, 1, 2})})),
             T({log(0.1), log(1), log(2)}));
   EXPECT_EQ(value(D(log(x), x).evaluateAt({x = T({0.1, 1, 2})})),
@@ -147,24 +148,25 @@ TEST(AD, Op) {
   EXPECT_EQ(value(D(y + T({1, 2, 1}), y)),
             T::sparseEye(combineShapes(shape, shape)));
   EXPECT_EQ(value(D(T({1, 2, 3}) - y, y)),
-            -T::sparseEye(combineShapes(shape, shape)));
+            T::constDiagonal(combineShapes(shape, shape), -1));
   EXPECT_EQ(value(D(y - T({3, 1, 2}), y)),
             T::sparseEye(combineShapes(shape, shape)));
 
   EXPECT_EQ(value(D(x + y, x)), T::sparseEye(combineShapes(shape, shape)));
   EXPECT_EQ(value(D(x + y, y)), T::sparseEye(combineShapes(shape, shape)));
-  EXPECT_EQ(value(D(x - y, y)), -T::sparseEye(combineShapes(shape, shape)));
+  EXPECT_EQ(value(D(x - y, y)),
+            T::constDiagonal(combineShapes(shape, shape), -1));
   EXPECT_EQ(value(D(y - x, y)), T::sparseEye(combineShapes(shape, shape)));
   EXPECT_EQ(value(D(x + x - y, x)),
-            2.0 * T::sparseEye(combineShapes(shape, shape)));
-  EXPECT_EQ(value(D(x + x - y, y)), -T::sparseEye(combineShapes(shape, shape)));
+            T::constDiagonal(combineShapes(shape, shape), 2.0));
+  EXPECT_EQ(value(D(x + x - y, y)),
+            T::constDiagonal(combineShapes(shape, shape), -1));
   EXPECT_EQ(value(D(x - y - y + x, x)),
-            2.0 * T::sparseEye(combineShapes(shape, shape)));
+            T::constDiagonal(combineShapes(shape, shape), 2.0));
   EXPECT_EQ(value(D(x - y - y + x, y)),
-            -2.0 * T::sparseEye(combineShapes(shape, shape)));
-
+            T::constDiagonal(combineShapes(shape, shape), -2.0));
   EXPECT_EQ(value(D(x + y / 2.0, y)),
-            T::sparseEye(combineShapes(shape, shape)) / 2.0);
+            T::constDiagonal(combineShapes(shape, shape), 1.0 / 2.0));
 }
 
 TEST(AD, Param) {

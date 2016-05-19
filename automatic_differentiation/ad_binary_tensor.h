@@ -223,13 +223,15 @@ class Minus : public AD<T>::Binary {
     }
   }
 
-  T f(const T& value1, const T& value2) const final { return value1 - value2; }
+  T f(const T& value1, const T& value2) const final { 
+      return value1 - value2; 
+  }
   AD<T> dF1() const final {
     return AD<T>(T::sparseEye(combineShapes(this->shape(), this->shape())));
   }
   AD<T> dF2() const final {
-    return AD<T>(-1.0 *
-                 T::sparseEye(combineShapes(this->shape(), this->shape())));
+    return AD<T>(
+        T::constDiagonal(combineShapes(this->shape(), this->shape()), -1));
   }
   const Shape& shapeTerm1Impl() const final { return this->term1().shape(); }
   const Shape& shapeTerm2Impl() const final { return this->term2().shape(); }
@@ -405,7 +407,13 @@ AD<T> operator*(const typename T::ValueType& scalar, const AD<T>& term) {
   Indices indices(term.shape().nDimensions());
   std::iota(indices.begin(), indices.end(), 0);
 
-  return multiply(AD<T>(T::fill(term.shape(), scalar)), indices, term, indices);
+  return multiply(AD<T>(T::fill(term.shape(), scalar)), indices, term,
+                  indices);
+  /*
+  return multiply(AD<T>(T::constDiagonal(
+                      combineShapes(term.shape(), term.shape()), scalar)),
+                  indices1, term, indices2);
+                  */
 }
 
 template <typename T>
