@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 #pragma clang diagnostic pop
 
+#include <iostream>
 #include <sstream>
 
 #include "tensor/tensor.h"
@@ -48,8 +49,8 @@ TEST(Tensor, Constructors) {
   auto t5 = Tensor<double>::ones(Shape({1, 3}));
   EXPECT_EQ(t5, Tensor<double>::ones(Shape({1, 3})));
 
-  auto t6 = Tensor<double>::generate(Shape({2, 3}),
-                                     [](Address a) { return a[0] + a[1]; });
+  auto t6 = Tensor<double>::generate(
+      Shape({2, 3}), [](const Address& a) { return a[0] + a[1]; });
   EXPECT_DOUBLE_EQ((t6[{0, 0}]), 0.0);
   EXPECT_DOUBLE_EQ((t6[{0, 1}]), 1.0);
   EXPECT_DOUBLE_EQ((t6[{0, 2}]), 2.0);
@@ -57,10 +58,24 @@ TEST(Tensor, Constructors) {
   EXPECT_DOUBLE_EQ((t6[{1, 1}]), 2.0);
   EXPECT_DOUBLE_EQ((t6[{1, 2}]), 3.0);
 
-  Tensor<double> t7(Tensor<double>::Data2D({{1.0, 2.0, 3.0}}));
+  Tensor<double> t7(Tensor<double>::Data2d({{1.0, 2.0, 3.0}}));
   EXPECT_DOUBLE_EQ((t7[{0, 0}]), 1.0);
   EXPECT_DOUBLE_EQ((t7[{0, 1}]), 2.0);
   EXPECT_DOUBLE_EQ((t7[{0, 2}]), 3.0);
+}
+
+TEST(Tensor, Iterator) {
+  using namespace Alexandria;
+  using namespace std;
+  Tensor<double> t2({{1, 2}, {3, 4}, {5, 6}});
+
+  auto index = 1ul;
+  auto accesser = Accesser(&t2.shape());
+  for (auto value : t2) {
+    EXPECT_EQ(value.second, index);
+    EXPECT_EQ(value.first, accesser.address(index - 1));
+    ++index;
+  }
 }
 
 TEST(Tensor, AddSubtract) {
@@ -131,7 +146,7 @@ TEST(Tensor, Multiply) {
 
   auto t9 = multiply<double>(
       Tensor<double>({1, 3, 2}), {-1},
-      Tensor<double>(Tensor<double>::Data2D({{2, 1, 3}})), {0, -1});
+      Tensor<double>(Tensor<double>::Data2d({{2, 1, 3}})), {0, -1});
   EXPECT_EQ(t9, Tensor<double>({11}));
 }
 

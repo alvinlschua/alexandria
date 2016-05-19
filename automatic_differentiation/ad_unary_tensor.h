@@ -192,7 +192,7 @@ class Reshape : public AD<T>::Unary {
       auto iter = std::copy(resultAddress.cbegin(), resultAddress.cend(),
                             address.begin());
       std::copy(termAddress.cbegin(), termAddress.cend(), iter);
-      permute_[address] = 1;
+      permute_.set(address, 1);
     }
 
     indicesPermute_ = Indices(permute_.shape().nDimensions());
@@ -209,18 +209,15 @@ class Reshape : public AD<T>::Unary {
     }
   }
 
-  // at the moment reshape only works with dense
   T f(const T& value) const final {
     using Dense = typename T::Dense;
     using Sparse = typename T::Sparse;
     if (value.template isType<Dense>()) {
       auto values = value.template reference<Dense>();
-      auto data = typename Dense::Data(values.cbegin(), values.cend());
-      return T(Dense(this->shape(), std::move(data)));
+      return T(Dense(this->shape(), values.data()));
     } else if (value.template isType<Sparse>()) {
       auto values = value.template reference<Sparse>();
-      auto data = typename Sparse::Data(values.cbegin(), values.cend());
-      return T(Sparse(this->shape(), std::move(data)));
+      return T(Sparse(this->shape(), values.data()));
     } else {
       throw unimplemented_exception("unknown tensor type");
     }

@@ -86,6 +86,35 @@ TEST(Helpers, multiplyShapes) {
                std::invalid_argument);
 }
 
+TEST(Helper, increment) {
+  using namespace Alexandria;
+  using namespace std;
+
+  Shape shape({3, 1, 2});
+  Address address(shape.nDimensions(), 0);
+
+  EXPECT_EQ(address, std::vector<size_t>({0, 0, 0}));
+
+  address = increment(std::move(address), shape);
+  EXPECT_EQ(address, std::vector<size_t>({0, 0, 1}));
+
+  address = increment(std::move(address), shape);
+  EXPECT_EQ(address, std::vector<size_t>({1, 0, 0}));
+
+  address = increment(std::move(address), shape);
+  EXPECT_EQ(address, std::vector<size_t>({1, 0, 1}));
+
+  address = increment(std::move(address), shape);
+  EXPECT_EQ(address, std::vector<size_t>({2, 0, 0}));
+
+  address = increment(std::move(address), shape);
+  EXPECT_EQ(address, std::vector<size_t>({2, 0, 1}));
+
+  address = increment(std::move(address), shape);
+  EXPECT_EQ(address, std::vector<size_t>({0, 0, 0}));
+}
+
+
 int main(int argc, char** argv) {
   // Disables elapsed time by default.
   ::testing::GTEST_FLAG(print_time) = false;

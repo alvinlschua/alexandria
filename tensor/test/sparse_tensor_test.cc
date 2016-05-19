@@ -31,7 +31,7 @@ TEST(Tensor, Constructors) {
   EXPECT_DOUBLE_EQ(t1[{1}], 0.0);
   EXPECT_DOUBLE_EQ(t1[{2}], 0.0);
 
-  EXPECT_EQ(t1.size(), 3);
+  EXPECT_EQ(t1.size(), 0);
 
   auto t2 = Tensor<double>::sparseEye(Shape({3, 3}));
   EXPECT_EQ(t2.size(), 3);
@@ -48,11 +48,11 @@ TEST(Tensor, Constructors) {
   auto t4 = Tensor<double>::sparseEye(Shape({3, 3}));
   auto t5 = Tensor<double>::zeros(Shape({3, 3}));
 
-  t5[{0, 0}] = 1;
-  t5[{1, 1}] = 1;
+  t5.set({0, 0}, 1);
+  t5.set({1, 1}, 1);
   EXPECT_NE(t4, t5);
 
-  t5[{2, 2}] = 1;
+  t5.set({2, 2}, 1);
   EXPECT_EQ(t4, t5);
 
   auto t6 = Tensor<double>::sparseEye(Shape({3, 3}));
@@ -70,9 +70,9 @@ TEST(Tensor, Op) {
   using namespace std;
 
   auto t1 = Tensor<double>::sparse(Shape({3}));
-  t1[{0}] = 4;
+  t1.set({0}, 4);
   auto t2 = Tensor<double>::sparse(Shape({3}));
-  t2[{1}] = 5;
+  t2.set({1}, 5);
 
   EXPECT_EQ(t1 + t2, Tensor<double>({4, 5, 0}));
   EXPECT_EQ(t2 + t1, Tensor<double>({4, 5, 0}));
@@ -97,10 +97,9 @@ TEST(Tensor, Serialize) {
   using namespace std;
 
   auto t1 = Tensor<double>::sparse(Shape({3}));
-  t1[{0}] = 4;
+  t1.set({0}, 4);
   auto t2 = Tensor<double>::sparse(Shape({3}));
-  t2[{1}] = 5;
-
+  t2.set({1}, 5);
 
   ostringstream sout;
   ArchiveOut ar_out(&sout);
@@ -120,7 +119,6 @@ TEST(Tensor, Serialize) {
   ar_in % t4;
   EXPECT_EQ(t2, t4);
 }
-
 
 int main(int argc, char** argv) {
   // Disables elapsed time by default.

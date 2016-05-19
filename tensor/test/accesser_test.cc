@@ -57,38 +57,6 @@ TEST(Accesser, Basic1) {
   EXPECT_EQ(accesser2.address(7), Address({0, 1, 3}));
 }
 
-TEST(Accesser, increment) {
-  using namespace Alexandria;
-  using namespace std;
-
-  Shape shape({3, 1, 2});
-  Accesser accesser(&shape);
-
-  auto iter = accesser.begin();
-  EXPECT_EQ(iter, accesser.begin());
-  EXPECT_EQ(iter, accesser.cbegin());
-  EXPECT_EQ(*iter, std::vector<size_t>({0, 0, 0}));
-
-  ++iter;
-  EXPECT_EQ(*iter, std::vector<size_t>({0, 0, 1}));
-
-  iter++;
-  EXPECT_EQ(*iter, std::vector<size_t>({1, 0, 0}));
-
-  ++iter;
-  EXPECT_EQ(*iter, std::vector<size_t>({1, 0, 1}));
-
-  iter++;
-  EXPECT_EQ(*iter, std::vector<size_t>({2, 0, 0}));
-
-  iter++;
-  EXPECT_EQ(*iter, std::vector<size_t>({2, 0, 1}));
-
-  ++iter;
-  EXPECT_EQ(iter, accesser.end());
-  EXPECT_EQ(iter, accesser.cend());
-}
-
 int main(int argc, char** argv) {
   // Disables elapsed time by default.
   ::testing::GTEST_FLAG(print_time) = false;

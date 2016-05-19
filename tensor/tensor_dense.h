@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "tensor/accesser.h"
+#include "tensor/address_iterator.h"
 #include "tensor/helpers.h"
 #include "tensor/shape.h"
 #include "tensor/tensor_base.h"
@@ -26,8 +27,7 @@ template <typename T>
 class Tensor<T>::Dense : public Base {
  public:
   using Data = std::vector<T>;
-  using Iterator = typename Data::iterator;
-  using ConstIterator = typename Data::const_iterator;
+  using Iterator = typename Data::const_iterator;
 
   Dense() {}
 
@@ -59,29 +59,36 @@ class Tensor<T>::Dense : public Base {
     return *this;
   }
 
-  // Iterators.
-  ConstIterator begin() const { return data_.cbegin(); }
-  ConstIterator end() const { return data_.cend(); }
-  ConstIterator cbegin() const { return data_.cbegin(); }
-  ConstIterator cend() const { return data_.cend(); }
-  Iterator begin() { return data_.begin(); }
-  Iterator end() { return data_.end(); }
+  // Data.
+  const Data& data() const { return data_; }
+  Data& data() { return data_; }
 
  private:
-  // Return the number of elements.
   size_t sizeImpl() const final { return data_.size(); }
 
-  // Return the shape.
   const Shape& shapeImpl() const final { return shape_; }
 
-  // Access an element.
-  T atConstImpl(const Address& address) const {
+  T atImpl(const Address& address) const final {
     return data_.at(accesser_.flatIndex(address));
   }
 
-  // Access an element.
-  T& atImpl(const Address& address) {
-    return data_[accesser_.flatIndex(address)];
+  void setImpl(const Address& address, T value,
+               std::function<T(T, T)> fn) final {
+    auto& data_value = data_[accesser_.flatIndex(address)];
+    data_value = fn(data_value, value);
+  }
+
+  AddressIterator beginImpl() const final {
+    return AddressIterator(
+        0ul, Address(shape_.nDimensions(), 0ul), &data_[0],
+        [this](size_t index, Address& address) {
+          address = increment(std::move(address), this->shape());
+          return &(data_[index]);
+        });
+  }
+
+  AddressIterator endImpl() const final {
+    return AddressIterator(this->size());
   }
 
   void serializeInImpl(ArchiveIn& ar, size_t /*version*/) final {
@@ -94,7 +101,7 @@ class Tensor<T>::Dense : public Base {
   size_t serializeOutVersionImpl() const final { return 0ul; }
 
   std::unique_ptr<Tensor<T>::Base> cloneImpl() const {
-    return std::make_unique<Tensor<T>::Dense>(*this);
+    return std::make_unique<Dense>(*this);
   }
 
   Shape shape_;
@@ -105,17 +112,16 @@ class Tensor<T>::Dense : public Base {
 template <typename T>
 std::ostream& operator<<(std::ostream& out,
                          const typename Tensor<T>::Dense& t) {
-  out << t.shape() << "{";
-  if (t.size() > 12) {
-    out << " " << t.size() << " elements ";
+  out << t.shape();
+  if (t.size() > 30) {
+    out << "{ " << t.size() << " elements }";
   } else {
-    auto iter = t.cbegin();
-    for (; iter != t.cend() - 1; ++iter) {
-      out << *iter << ", ";
+    out << "{ ";
+    for (auto iter = t.dataBegin(); iter != t.dataEnd(); ++iter) {
+      out << *iter << " ";
     }
-    out << *iter;
+    out << "}";
   }
-  out << "}";
 
   return out;
 }

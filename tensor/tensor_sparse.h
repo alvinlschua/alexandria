@@ -1,11 +1,11 @@
 #ifndef TENSOR_SPARSE_TENSOR_H
 #define TENSOR_SPARSE_TENSOR_H
 
-#include <unordered_map>
+#include <map>
 
 #include "tensor/accesser.h"
+#include "tensor/address_iterator.h"
 #include "tensor/helpers.h"
-#include "tensor/tensor.h"
 #include "tensor/tensor_base.h"
 #include "util/util.h"
 
@@ -24,61 +24,66 @@ template <typename T>
 class Tensor<T>::Sparse : public Base {
  public:
   using Data = std::unordered_map<Address, T, AddressHash>;
-  using Iterator = typename Data::iterator;
-  using ConstIterator = typename Data::const_iterator;
+  using Iterator = typename Data::const_iterator;
 
   // Make an tensor with the same value.
   Sparse() {}
 
   // Make a sparse tensor
   explicit Sparse(const Shape& shape) : shape_(shape) {}
+
   explicit Sparse(const Shape& shape, Data data)
       : shape_(shape), data_(std::move(data)) {}
+
   Sparse(const Sparse&) = default;
   Sparse& operator=(const Sparse&) = default;
 
   virtual ~Sparse() {}
 
-  void zero(const Address& address) { data_.erase(address); }
-
-  // Iterators.
-  ConstIterator begin() const { return data_.cbegin(); }
-  ConstIterator end() const { return data_.cend(); }
-  ConstIterator cbegin() const { return data_.cbegin(); }
-  ConstIterator cend() const { return data_.cend(); }
-  Iterator begin() { return data_.begin(); }
-  Iterator end() { return data_.end(); }
+  // Data.
+  const Data& data() const { return data_; }
+  Data& data() { return data_; }
 
  private:
-  // Return the number of elements.
   size_t sizeImpl() const { return data_.size(); }
 
-  // Return the shape.
   const Shape& shapeImpl() const { return shape_; }
 
-  // Access an element.
-  T atConstImpl(const Address& address) const {
+  T atImpl(const Address& address) const {
     auto iter = data_.find(address);
     return iter != data_.end() ? iter->second : 0;
   }
 
-  // Access an element.
-  T& atImpl(const Address& address) {
+  void setImpl(const Address& address, T value,
+               std::function<T(T, T)> fn) final {
     auto iter = data_.find(address);
-    if (iter == data_.end()) {
-      data_[address] = 0;
+    auto result = fn(iter == data_.end() ? 0 : iter->second, value);
+    if (almostEqual(result, 0)) {
+      if (iter != data_.end()) data_.erase(address);
+      return;
     }
-    return data_[address];
+
+    if (iter != data_.cend()) {
+      iter->second = result;
+    } else {
+      data_[address] = result;
+    }
   }
 
-  // Helper to remove zeros.
-  void shrink() {
-    for (auto iter = begin(); iter != end();) {
-      if (almostEqual(iter->second, 0))
-        iter = data_.erase(iter);
-      else
-        ++iter;
-    }
+  AddressIterator beginImpl() const final {
+    return AddressIterator(
+        0ul, data_.size() == 0 ? Address() : data_.cbegin()->first,
+        data_.size() == 0 ? nullptr : &(data_.cbegin()->second),
+        [this](size_t index, Address& address) {
+          auto iter = data_.cbegin();
+          for (auto idx = 0ul; idx < index; ++idx) ++iter;
+          address = iter == data_.cend() ? Address() : iter->first;
+          return iter == data_.cend() ? nullptr : &(iter->second);
+        });
+  }
+
+  AddressIterator endImpl() const final {
+    return AddressIterator(this->size());
   }
 
   void serializeInImpl(ArchiveIn& ar, size_t /*version*/) final {

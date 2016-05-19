@@ -112,8 +112,9 @@ inline void scatter(IndexIterator index_begin, IndexIterator index_end,
                 [result_begin, begin, &count, &reindex](int old_index) {
                   auto index = reindex(old_index);
                   if (index != invalid_index) {
-                    *(result_begin + index) = *(begin + count++);
+                    *(result_begin + index) = *(begin + count);
                   }
+                  count++;
                 });
 }
 

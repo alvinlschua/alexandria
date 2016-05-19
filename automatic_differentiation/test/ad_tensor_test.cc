@@ -22,35 +22,42 @@ TEST(AD, Basic) {
   auto y = AD("y", Shape({3}));
   auto z = y;
 
-  EXPECT_EQ(c.expression(), "Shape(3){5 2 3}");
+  EXPECT_EQ(c.expression(), "Shape(3){ 5 2 3 }");
   EXPECT_TRUE(c.isType<AD::Const>());
   EXPECT_FALSE(c.isType<AD::Var>());
-  EXPECT_EQ(c.evaluateAt({x = T({2, 2, 3})}).expression(), "Shape(3){5 2 3}");
-  EXPECT_EQ(c.differentiate(x).expression(), "Shape(3, 3){0 0 0 0 0 0 0 0 0}");
+  EXPECT_EQ(c.evaluateAt({x = T({2, 2, 3})}).expression(), "Shape(3){ 5 2 3 }");
+  EXPECT_EQ(c.differentiate(x).expression(),
+            "Shape(3, 3){ 0 0 0 0 0 0 0 0 0 }");
   EXPECT_TRUE(c.differentiate(x).isType<AD::Const>());
   EXPECT_EQ(value(c), T({5, 2, 3}));
 
   EXPECT_EQ(x.expression(), "x");
   EXPECT_TRUE(x.isType<AD::Var>());
   EXPECT_FALSE(x.isType<AD::Const>());
-  EXPECT_EQ(x.evaluateAt({x = T({1, 2, 4})}).expression(), "Shape(3){1 2 4}");
-  EXPECT_EQ(x.differentiate(x).expression(), "Shape(3, 3){1 0 0 0 1 0 0 0 1}");
-  EXPECT_EQ(x.differentiate(y).expression(), "Shape(3, 3){0 0 0 0 0 0 0 0 0}");
+  EXPECT_EQ(x.evaluateAt({x = T({1, 2, 4})}).expression(), "Shape(3){ 1 2 4 }");
+  EXPECT_EQ(x.differentiate(x).expression(),
+            "Shape(3, 3){ 1 0 0 0 1 0 0 0 1 }");
+  EXPECT_EQ(x.differentiate(y).expression(),
+            "Shape(3, 3){ 0 0 0 0 0 0 0 0 0 }");
   EXPECT_EQ(identifier(x), "x");
 
   EXPECT_EQ(y.expression(), "y");
   EXPECT_TRUE(y.isType<AD::Var>());
   EXPECT_FALSE(y.isType<AD::Const>());
   EXPECT_EQ(y.evaluateAt({x = T({2})}).expression(), "y");
-  EXPECT_EQ(y.differentiate(x).expression(), "Shape(3, 3){0 0 0 0 0 0 0 0 0}");
-  EXPECT_EQ(y.differentiate(y).expression(), "Shape(3, 3){1 0 0 0 1 0 0 0 1}");
+  EXPECT_EQ(y.differentiate(x).expression(),
+            "Shape(3, 3){ 0 0 0 0 0 0 0 0 0 }");
+  EXPECT_EQ(y.differentiate(y).expression(),
+            "Shape(3, 3){ 1 0 0 0 1 0 0 0 1 }");
 
   EXPECT_EQ(z.expression(), "y");
   EXPECT_TRUE(z.isType<AD::Var>());
   EXPECT_FALSE(z.isType<AD::Const>());
   EXPECT_EQ(z.evaluateAt({x = T({2})}).expression(), "y");
-  EXPECT_EQ(z.differentiate(x).expression(), "Shape(3, 3){0 0 0 0 0 0 0 0 0}");
-  EXPECT_EQ(z.differentiate(y).expression(), "Shape(3, 3){1 0 0 0 1 0 0 0 1}");
+  EXPECT_EQ(z.differentiate(x).expression(),
+            "Shape(3, 3){ 0 0 0 0 0 0 0 0 0 }");
+  EXPECT_EQ(z.differentiate(y).expression(),
+            "Shape(3, 3){ 1 0 0 0 1 0 0 0 1 }");
 }
 
 TEST(AD, ConstAndVar) {
@@ -89,16 +96,16 @@ TEST(AD, UnaryOp) {
 
   auto xx = reshape(x, Shape({1, 3}));
   EXPECT_EQ(value(xx.evaluateAt({x = T({1, 2, 3})})),
-            T(T::Data2D({{1, 2, 3}})));
+            T(T::Data2d({{1, 2, 3}})));
   EXPECT_EQ(
       value(multiply(x, {-1}, xx, {0, -1}).evaluateAt({x = T({1, 2, 3})})),
       T({14}));
   EXPECT_EQ(value(D(multiply(x, {-1}, xx, {0, -1}),
                     x).evaluateAt({x = T({1, 2, 3})})),
-            T(T::Data2D({{2, 4, 6}})));
+            T(T::Data2d({{2, 4, 6}})));
   EXPECT_EQ(value(D(3.0 * multiply(x, {-1}, xx, {0, -1}),
                     x).evaluateAt({x = T({1, 2, 3})})),
-            T(T::Data2D({{6, 12, 18}})));
+            T(T::Data2d({{6, 12, 18}})));
 
   EXPECT_EQ(value(sigmoid(x).evaluateAt({x = T({-1, 0, 1})})),
             T({1.0 / (1.0 + exp(1)), 1.0 / 2.0, 1.0 / (1.0 + exp(-1))}));
@@ -133,7 +140,7 @@ TEST(AD, Op) {
   EXPECT_EQ(value(D(x + y, y)), T::sparseEye(combineShapes(shape, shape)));
   EXPECT_EQ(value(D(x + y, z)), T::sparse(combineShapes(shape, shape)));
   EXPECT_EQ((x + y).evaluateAt({x = T({1, 2, 2})}).expression(),
-            "(Shape(3){1 2 2} + y)");
+            "(Shape(3){ 1 2 2 } + y)");
 
   EXPECT_EQ(value(D(T({1, 2, 1}) + y, y)),
             T::sparseEye(combineShapes(shape, shape)));

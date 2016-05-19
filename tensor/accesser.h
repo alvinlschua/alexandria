@@ -4,7 +4,7 @@
 #include <numeric>
 #include <vector>
 
-#include "tensor/address_iterator.h"
+//#include "tensor/address_iterator.h"
 #include "tensor/shape.h"
 
 namespace Alexandria {
@@ -28,16 +28,16 @@ class Accesser {
   Address address(size_t flat_index) const;
 
   // Forward iterator for addresses of the accessor shape.
+  /*
   AddressIterator cbegin() const { return AddressIterator(*this, 0); }
   AddressIterator cend() const {
     return AddressIterator(*this, nElements(*shape_));
   }
   AddressIterator begin() const { return cbegin(); }
   AddressIterator end() const { return cend(); }
+  */
 
  private:
-  friend class AddressIterator;
-
   Strides strides_;
   const Shape* shape_;
 };

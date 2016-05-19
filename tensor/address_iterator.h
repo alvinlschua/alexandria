@@ -3,18 +3,25 @@
 
 #include <iterator>
 
-#include "tensor/shape.h"
-
 namespace Alexandria {
 
-// forward declare
-class Accesser;
-
-class AddressIterator : public std::iterator<std::forward_iterator_tag, Address,
-                                             ptrdiff_t, Address*, Address&> {
+template <typename T>
+class Tensor<T>::AddressIterator
+    : public std::iterator<std::forward_iterator_tag,
+                           std::pair<const Address, const T&>, ptrdiff_t,
+                           std::pair<const Address, const T&>*,
+                           std::pair<const Address, const T&>&> {
  public:
-  AddressIterator() : index_(0) {}
-  AddressIterator(const Accesser& accesser, size_t index);
+  using ValueType = typename AddressIterator::value_type;
+
+  explicit AddressIterator(size_t index = 0) : index_(index), value_(nullptr) {}
+
+  AddressIterator(size_t index, const Address& address, const T* value,
+                  std::function<const T*(size_t, Address&)> increment)
+      : index_(index),
+        address_(address),
+        value_(value),
+        increment_(increment) {}
 
   bool operator==(const AddressIterator& iterator) const {
     return index_ == iterator.index_;
@@ -24,10 +31,14 @@ class AddressIterator : public std::iterator<std::forward_iterator_tag, Address,
     return !(operator==(iter));
   }
 
-  const Address& operator*() const { return address_; }
+  ValueType operator*() const { return ValueType(address_, *value_); }
   const Address* operator->() const { return &(operator*()); }
 
-  AddressIterator& operator++();
+  AddressIterator& operator++() {
+    ++index_;
+    value_ = increment_(index_, address_);
+    return *this;
+  }
   AddressIterator operator++(int) {
     auto iter = AddressIterator(*this);
     ++(*this);
@@ -35,10 +46,10 @@ class AddressIterator : public std::iterator<std::forward_iterator_tag, Address,
   }
 
  private:
-  const Shape* shape_;
-
-  Address address_;
   size_t index_;
+  Address address_;
+  const T* value_;
+  std::function<const T*(size_t, Address&)> increment_;
 };
 }
 

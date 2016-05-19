@@ -119,4 +119,23 @@ bool indicesUnique(Indices indices) {
   return adjacent_find(indices.cbegin(), indices.cend()) == indices.cend();
 }
 
+Address increment(Address address, const Shape& shape) {
+  CHECK(address.size() > 0) << "empty address";
+  ++address.back();
+
+  auto carry = 0ul;
+  auto iter = address.rbegin();
+  auto dim_iter = shape.crbegin();
+
+  for (; iter != address.rend(); ++iter, ++dim_iter) {
+    auto value = *iter;
+    const auto dim = *dim_iter;
+    value += carry;
+    carry = value / dim;
+    *iter = value % dim;
+    if (carry == 0) break;
+  }
+  return address;
+}
+
 }  // namespace Tensor

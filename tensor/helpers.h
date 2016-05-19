@@ -31,6 +31,8 @@ inline bool isEyeShape(const Shape& shape) {
                     shape.cbegin() + shape.nDimensions() / 2);
 }
 
+Address increment(Address address, const Shape& shape);
+
 }  // Tensor
 
 #endif
