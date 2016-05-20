@@ -31,6 +31,10 @@ class AD<T>::Var : public Expression {
                      ? T::sparseEye(combineShapes(this->shape(), this->shape()))
                      : T::sparse(combineShapes(this->shape(), var.shape())));
   }
+  
+  bool dependsOnImpl(const AD<T>& var) const final {
+    return identifier() == Alexandria::identifier(var) ? true : false;
+  }
 
   AD<T> evaluateAtImpl(const VarValues& varValues) const final {
     for (const auto& varValue : varValues) {

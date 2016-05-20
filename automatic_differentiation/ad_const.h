@@ -27,6 +27,8 @@ class AD<T>::Const : public Expression {
 
   AD<T> differentiateImpl(const AD<T>& /*var*/) const final { return AD<T>(0); }
 
+  bool dependsOnImpl(const AD<T>& /*var*/) const final { return false; }
+
   AD<T> simplifyImpl() const final { return AD<T>(value()); }
 
   AD<T> evaluateAtImpl(const VarValues& /*varValues*/) const final {

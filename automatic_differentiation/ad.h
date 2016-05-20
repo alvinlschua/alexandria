@@ -55,6 +55,9 @@ class AD {
   // Differentiate with respect to AD::Var.
   AD differentiate(const AD& var) const { return ptr_->differentiate(var); }
 
+  // Does the term independ on the variable?
+  bool dependsOn(const AD& var) const { return ptr_->dependsOn(var); } 
+
   // Evaluate the expression with concrete values for AD::Var.
   AD evaluateAt(const VarValues& varValues) const {
     return ptr_->evaluateAt(varValues);

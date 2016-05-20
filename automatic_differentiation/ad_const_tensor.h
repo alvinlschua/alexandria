@@ -29,6 +29,10 @@ class AD<T>::Const : public Expression {
     return AD<T>(T::sparse(combineShapes(this->shape(), var.shape())));
   }
 
+  bool dependsOnImpl(const AD<T>& /*var*/) const final {
+    return false;
+  }
+
   AD<T> simplifyImpl() const final { return AD<T>(value()); }
 
   AD<T> evaluateAtImpl(const VarValues& /*varValues*/) const final {

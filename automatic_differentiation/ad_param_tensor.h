@@ -39,6 +39,10 @@ class AD<T>::Param : public Expression {
       return result;
   }
 
+  bool dependsOnImpl(const AD<T>& var) const final {
+    return identifier() == Alexandria::identifier(var) ? true : false;
+  }
+
   AD<T> evaluateAtImpl(const VarValues& /*varValues*/) const final {
     return AD<T>(value());
   }

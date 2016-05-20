@@ -30,14 +30,16 @@ class AD<T>::Var : public Expression {
   explicit Var(const std::string& identifier) : identifier_(identifier) {}
 
   AD<T> differentiateImpl(const AD<T>& var) const final {
-    return AD<T>(
-        identifier() == Alexandria::identifier<T>(var) ? 1 : 0);
+    return AD<T>(identifier() == Alexandria::identifier<T>(var) ? 1 : 0);
+  }
+
+  bool dependsOnImpl(const AD<T>& var) const final {
+    return identifier() == Alexandria::identifier<T>(var) ? true : false;
   }
 
   AD<T> evaluateAtImpl(const VarValues& varValues) const final {
     for (const auto& varValue : varValues) {
-      if (identifier() ==
-          Alexandria::identifier<T>(varValue.first)) {
+      if (identifier() == Alexandria::identifier<T>(varValue.first)) {
         return AD<T>(varValue.second);
       }
     }

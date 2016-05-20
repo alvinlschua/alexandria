@@ -28,6 +28,14 @@ class AD<T>::Expression : public Clonable<AD<T>::Expression> {
     return differentiateImpl(var);
   }
 
+  // Check if the expression is a function of the var or param.
+  bool dependsOn(const AD<T>& var) const {
+    CHECK(var.isType<typename AD<T>::Var>() ||
+          var.isType<typename AD<T>::Param>())
+        << "must be of type Var or Param";
+    return dependsOnImpl(var);
+  }
+
   // Evaluate the expression with concrete values for AD<T>::Var.
   AD<T> evaluateAt(const VarValues& varValues) const {
     for (const auto& varValue : varValues) {
@@ -46,6 +54,7 @@ class AD<T>::Expression : public Clonable<AD<T>::Expression> {
 
  private:
   virtual AD<T> differentiateImpl(const AD<T>& var) const = 0;
+  virtual bool dependsOnImpl(const AD<T>& var) const = 0;
   virtual AD<T> evaluateAtImpl(const VarValues& varValues) const = 0;
   virtual AD<T> simplifyImpl() const = 0;
   virtual std::string expressionImpl() const = 0;

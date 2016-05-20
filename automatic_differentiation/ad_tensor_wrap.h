@@ -39,11 +39,11 @@ class AD {
   explicit AD(const T& value);
 
   // Make var.
-  explicit AD(const std::string& identifier, const Shape& shape);
+  AD(const std::string& identifier, const Shape& shape);
 
   // Make param. Params can be treated as variables, but have an associated set
   // of values.
-  explicit AD(const std::string& identifier, const T& value);
+  AD(const std::string& identifier, const T& value);
 
   // Construct from a ptr.
   explicit AD(Ptr ptr) : ptr_(std::move(ptr)) {}
@@ -60,6 +60,9 @@ class AD {
 
   // Differentiate with respect to AD::Var.
   AD differentiate(const AD& var) const { return ptr_->differentiate(var); }
+
+  // Does the term independ on the variable?
+  bool dependsOn(const AD& var) const { return ptr_->dependsOn(var); } 
 
   // Evaluate the expression with concrete values for AD::Var.
   AD evaluateAt(const VarValues& varValues) const {

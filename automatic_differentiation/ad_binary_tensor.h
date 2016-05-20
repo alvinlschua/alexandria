@@ -46,6 +46,11 @@ class AD<T>::Binary : public Expression {
   // Differentiate with respect to var.
   AD<T> differentiateImpl(const AD<T>& var) const;
 
+  // Does the function depend on the variable?
+  bool dependsOnImpl(const AD<T>& var) const final {
+    return term1().dependsOn(var) || term2().dependsOn(var);;
+  }
+
   // Evaluate the expression.
   AD<T> evaluateAtImpl(const VarValues& varValues) const final;
 
